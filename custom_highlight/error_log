@@ -1,0 +1,128 @@
+[14-Aug-2024 17:55:05 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 17:58:59 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 18:09:26 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 18:12:28 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 18:14:02 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 18:17:21 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 18:17:21 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php',
+   'text' => 'destacado',
+   'timestamp' => 1723670241,
+)
+[14-Aug-2024 18:17:21 America/Sao_Paulo] Erro ao salvar destaque: Tabela "mdl_a_user_highlight" não existe
+[14-Aug-2024 18:17:42 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 18:17:42 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php',
+   'text' => 'um texto destacado.
+
+14/08/2024, 18:11:25',
+   'timestamp' => 1723670262,
+)
+[14-Aug-2024 18:17:42 America/Sao_Paulo] Erro ao salvar destaque: Tabela "mdl_a_user_highlight" não existe
+[14-Aug-2024 18:36:22 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 18:36:22 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php',
+   'text' => 'texto',
+   'timestamp' => 1723671382,
+)
+[14-Aug-2024 18:36:22 America/Sao_Paulo] Erro ao salvar destaque: Tabela "mdl_a_user_highlight" não existe
+[14-Aug-2024 19:09:50 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 19:09:50 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php',
+   'text' => 'destacado',
+   'timestamp' => 1723673390,
+)
+[14-Aug-2024 19:09:50 America/Sao_Paulo] Erro ao salvar destaque: Tabela "mdl_a_user_highlight" não existe
+[14-Aug-2024 19:26:27 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 19:26:27 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php',
+   'text' => 'destacado',
+   'timestamp' => 1723674387,
+)
+[14-Aug-2024 19:26:27 America/Sao_Paulo] Erro ao salvar destaque: Erro ao escrever na base de dados
+[14-Aug-2024 19:28:03 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[14-Aug-2024 19:28:03 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php',
+   'text' => 'destacado',
+   'timestamp' => 1723674483,
+)
+[14-Aug-2024 19:54:16 America/Fortaleza] PHP Parse error:  syntax error, unexpected identifier "Error", expecting "," or ";" in /home2/cepacj92/public_html/_alunos/local/custom-annotations-plugin/highlight_board.php on line 80
+[14-Aug-2024 23:55:55 America/Fortaleza] PHP Warning:  Undefined variable $OUTPUT in /home2/cepacj92/public_html/_alunos/local/custom-annotations-plugin/highlight_board.php on line 35
+[14-Aug-2024 23:55:55 America/Fortaleza] PHP Fatal error:  Uncaught Error: Call to a member function footer() on null in /home2/cepacj92/public_html/_alunos/local/custom-annotations-plugin/highlight_board.php:35
+Stack trace:
+#0 {main}
+  thrown in /home2/cepacj92/public_html/_alunos/local/custom-annotations-plugin/highlight_board.php on line 35
+[15-Aug-2024 00:08:24 America/Fortaleza] PHP Warning:  Undefined variable $OUTPUT in /home2/cepacj92/public_html/_alunos/local/custom-annotations-plugin/highlight_board.php on line 35
+[15-Aug-2024 00:08:24 America/Fortaleza] PHP Fatal error:  Uncaught Error: Call to a member function footer() on null in /home2/cepacj92/public_html/_alunos/local/custom-annotations-plugin/highlight_board.php:35
+Stack trace:
+#0 {main}
+  thrown in /home2/cepacj92/public_html/_alunos/local/custom-annotations-plugin/highlight_board.php on line 35
+[15-Aug-2024 00:10:06 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:10:06 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:18:13 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:18:13 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:22:48 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:22:48 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:23:50 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:23:50 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:32:03 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 00:32:03 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:05:38 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:05:38 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:10:13 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:10:13 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:10:13 America/Sao_Paulo] PHP Notice:  This page did not call $PAGE->set_url(...). Using https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php<ul style="text-align: left" data-rel="backtrace"><li>line 679 of /lib/pagelib.php: call to debugging()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_url()</li><li>line 4336 of /lib/navigationlib.php: call to moodle_page->__get()</li><li>line 838 of /lib/pagelib.php: call to settings_navigation->initialise()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_settingsnav()</li><li>line 761 of /lib/classes/navigation/views/secondary.php: call to moodle_page->__get()</li><li>line 236 of /lib/classes/navigation/views/secondary.php: call to core\navigation\views\secondary->load_admin_navigation()</li><li>line 895 of /lib/pagelib.php: call to core\navigation\views\secondary->initialise()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_secondarynav()</li><li>line 61 of /theme/lambda2/layout/default.php: call to moodle_page->__get()</li><li>line 1477 of /lib/outputrenderers.php: call to include()</li><li>line 1403 of /lib/outputrenderers.php: call to core_renderer->render_page_layout()</li><li>line 1973 of /lib/setuplib.php: call to core_renderer->header()</li><li>line 16 of /local/custom-annotations-plugin/highlight_board.php: call to bootstrap_renderer->__call()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:54:21 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:54:21 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:54:22 America/Sao_Paulo] PHP Notice:  This page did not call $PAGE->set_url(...). Using https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php<ul style="text-align: left" data-rel="backtrace"><li>line 679 of /lib/pagelib.php: call to debugging()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_url()</li><li>line 4336 of /lib/navigationlib.php: call to moodle_page->__get()</li><li>line 838 of /lib/pagelib.php: call to settings_navigation->initialise()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_settingsnav()</li><li>line 761 of /lib/classes/navigation/views/secondary.php: call to moodle_page->__get()</li><li>line 236 of /lib/classes/navigation/views/secondary.php: call to core\navigation\views\secondary->load_admin_navigation()</li><li>line 895 of /lib/pagelib.php: call to core\navigation\views\secondary->initialise()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_secondarynav()</li><li>line 61 of /theme/lambda2/layout/default.php: call to moodle_page->__get()</li><li>line 1477 of /lib/outputrenderers.php: call to include()</li><li>line 1403 of /lib/outputrenderers.php: call to core_renderer->render_page_layout()</li><li>line 1973 of /lib/setuplib.php: call to core_renderer->header()</li><li>line 16 of /local/custom-annotations-plugin/highlight_board.php: call to bootstrap_renderer->__call()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:55:07 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 12 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:55:07 America/Sao_Paulo] PHP Notice:  Invalid get_string() identifier: 'highlights' or component 'local_custom_annotations_plugin'. Perhaps you are missing $string['highlights'] = ''; in /lang/en/local_custom_annotations_plugin.php?<ul style="text-align: left" data-rel="backtrace"><li>line 356 of /lib/classes/string_manager_standard.php: call to debugging()</li><li>line 7414 of /lib/moodlelib.php: call to core_string_manager_standard->get_string()</li><li>line 13 of /local/custom-annotations-plugin/highlight_board.php: call to get_string()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[15-Aug-2024 02:55:07 America/Sao_Paulo] PHP Notice:  This page did not call $PAGE->set_url(...). Using https://alunos.cepacjf.com.br/local/custom-annotations-plugin/highlight_board.php<ul style="text-align: left" data-rel="backtrace"><li>line 679 of /lib/pagelib.php: call to debugging()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_url()</li><li>line 4336 of /lib/navigationlib.php: call to moodle_page->__get()</li><li>line 838 of /lib/pagelib.php: call to settings_navigation->initialise()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_settingsnav()</li><li>line 761 of /lib/classes/navigation/views/secondary.php: call to moodle_page->__get()</li><li>line 236 of /lib/classes/navigation/views/secondary.php: call to core\navigation\views\secondary->load_admin_navigation()</li><li>line 895 of /lib/pagelib.php: call to core\navigation\views\secondary->initialise()</li><li>line 967 of /lib/pagelib.php: call to moodle_page->magic_get_secondarynav()</li><li>line 61 of /theme/lambda2/layout/default.php: call to moodle_page->__get()</li><li>line 1477 of /lib/outputrenderers.php: call to include()</li><li>line 1403 of /lib/outputrenderers.php: call to core_renderer->render_page_layout()</li><li>line 1973 of /lib/setuplib.php: call to core_renderer->header()</li><li>line 16 of /local/custom-annotations-plugin/highlight_board.php: call to bootstrap_renderer->__call()</li></ul> in /home2/cepacj92/public_html/_alunos/lib/weblib.php on line 3393
+[16-Aug-2024 00:06:12 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[16-Aug-2024 00:06:12 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/course/view.php?id=22',
+   'text' => '08/2024, 19:28:03',
+   'timestamp' => 1723777572,
+)
+[16-Aug-2024 00:09:00 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[16-Aug-2024 00:09:00 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/course/view.php?id=22',
+   'text' => 'mo Direito Comercial, é um ra',
+   'timestamp' => 1723777740,
+)
+[16-Aug-2024 00:13:14 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[16-Aug-2024 00:13:14 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/course/view.php?id=22',
+   'text' => 'tom Highlight',
+   'timestamp' => 1723777994,
+)
+[16-Aug-2024 00:26:35 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[16-Aug-2024 00:26:35 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/course/view.php?id=22',
+   'text' => '1. Evolu',
+   'timestamp' => 1723778795,
+)
+[16-Aug-2024 00:26:43 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[16-Aug-2024 00:26:43 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/course/view.php?id=22',
+   'text' => 'ght',
+   'timestamp' => 1723778803,
+)
+[16-Aug-2024 00:29:48 America/Sao_Paulo] Debug: Atingiu o ponto antes da inserção.
+[16-Aug-2024 00:29:48 America/Sao_Paulo] Debug: Dados a serem inseridos: (object) array(
+   'userid' => '2',
+   'page' => 'https://alunos.cepacjf.com.br/course/view.php?id=22',
+   'text' => 'um',
+   'timestamp' => 1723778988,
+)
