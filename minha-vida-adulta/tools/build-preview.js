@@ -23,5 +23,6 @@ const montar = (modelo, destino) => {
 };
 montar('preview/template.html', 'preview/preview.html');
 montar('gravar/template.html', 'gravar/gravar.html');
+montar('camera/template.html', 'camera/index.html');
 console.log('(' + dados.categorias.length + ' categorias, ' +
   dados.categorias.reduce((n, c) => n + c.resultados.length, 0) + ' resultados)');

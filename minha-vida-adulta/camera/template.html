@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>Minha Vida Adulta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap">
+<style>
+  /* Câmera ao vivo em tela cheia: palco 9:16 centralizado no preto, controles por cima, embaixo. */
+  :root {
+    color-scheme: dark;
+    --fundo: #000; --superficie: rgba(22,22,28,.94); --borda: #34343e; --texto: #f4f4f6; --suave: #b0b0bb;
+    --amarelo: #FFC800; --amarelo-texto: #1d1600; --vermelho: #ff2d3d; --erro: #ff7b7b;
+    --ui: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto); font: 500 15px/1.45 var(--ui); overflow: hidden; }
+  .palco { position: fixed; inset: 0; display: grid; place-items: center; }
+  canvas { height: 100%; width: auto; max-width: 100%; aspect-ratio: 9 / 16; object-fit: contain; display: block; background: #111; }
+  @media (max-aspect-ratio: 9/16) { canvas { width: 100%; height: auto; } }
+
+  .topo { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 12px); left: 12px; right: 12px; display: flex; justify-content: center; pointer-events: none; }
+  .selo { padding: 5px 12px; border-radius: 999px; background: rgba(0,0,0,.6); font-weight: 700; font-size: 13px; }
+  .selo.gravando { background: var(--vermelho); }
+
+  .controles { position: fixed; left: 0; right: 0; bottom: 0; padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 22px) max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; align-items: center; gap: 10px; background: linear-gradient(transparent, rgba(0,0,0,.55)); }
+  .dica { font-weight: 700; text-shadow: 0 1px 4px #000; text-align: center; }
+  .gravar { width: 78px; height: 78px; border-radius: 50%; border: 5px solid #fff; background: transparent; padding: 0; cursor: pointer; display: grid; place-items: center; }
+  .gravar span { width: 58px; height: 58px; border-radius: 50%; background: var(--vermelho); transition: all .2s; }
+  .gravar.ativo span { width: 30px; height: 30px; border-radius: 8px; }
+  .gravar:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 4px; }
+
+  .cartao { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; background: var(--superficie); border: 1px solid var(--borda); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .cartao h1 { margin: 0; font: 900 22px/1.15 var(--ui); }
+  .cartao h1 span { color: var(--amarelo); }
+  .cartao p { margin: 0; color: var(--suave); }
+  .btn { font: 700 16px/1.2 var(--ui); min-height: 52px; padding: 14px; border-radius: 12px; border: 1.5px solid var(--borda); background: transparent; color: var(--texto); cursor: pointer; width: 100%; }
+  .btn.principal { background: var(--amarelo); border-color: var(--amarelo); color: var(--amarelo-texto); }
+  .btn:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 2px; }
+  .duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .erro { color: var(--erro); }
+  video.resultado { width: 100%; max-height: 52vh; border-radius: 12px; background: #000; }
+  ol { margin: 0; padding-left: 20px; color: var(--suave); display: flex; flex-direction: column; gap: 6px; }
+  .pequeno { font-size: 13px; }
+  .gravar.ativo span, .gravar span { will-change: transform; }
+  @media (prefers-reduced-motion: reduce) { .gravar span { transition: none; } }
+</style>
+</head>
+<body>
+<div class="palco"><canvas id="tela" width="720" height="1280" aria-label="Câmera com o efeito"></canvas></div>
+<div class="topo"><div class="selo" id="selo" hidden></div></div>
+
+<div class="controles" id="controles" hidden>
+  <div class="dica" id="dica">Toque no botão pra gravar. A bolinha começa sozinha.</div>
+  <button class="gravar" id="bGravar" aria-label="Gravar"><span></span></button>
+</div>
+
+<div class="cartao" id="cInicio">
+  <h1>Minha vida adulta <span>de acordo com o filtro</span></h1>
+  <p>Abra a câmera frontal, toque no botão vermelho e reaja ao sorteio. O vídeo para sozinho no fim, em uns 25 segundos.</p>
+  <button class="btn principal" id="bCamera">Abrir câmera</button>
+  <p class="pequeno">O navegador vai pedir permissão de câmera e microfone. Toque em <strong>Permitir</strong>.</p>
+  <p class="erro" id="erroInicio" hidden></p>
+</div>
+
+<div class="cartao" id="cPronto" hidden>
+  <h1>Ficou <span>pronto</span></h1>
+  <video class="resultado" id="resultado" controls playsinline></video>
+  <button class="btn principal" id="bCompartilhar">Compartilhar (TikTok)</button>
+  <div class="duplo">
+    <button class="btn" id="bSalvar">Salvar no celular</button>
+    <button class="btn" id="bDeNovo">Gravar de novo</button>
+  </div>
+  <p class="pequeno" id="infoPronto"></p>
+</div>
+
+<script>
+/*@@ROLETA@@*/
+</script>
+<script>
+/*@@DESENHO@@*/
+</script>
+<script>
+window.RESULTADOS = /*@@DADOS@@*/;
+</script>
+<script>
+(function () {
+  'use strict';
+  var dados = window.RESULTADOS;
+  var W = 720, H = 1280, ESC = W / 1080;
+  var ESPERA_INICIO = 0.6;   // segundos de gravação antes da bolinha começar
+  var SEGURA_FIM = 2.0;      // segundos com o resultado completo antes de parar
+  var $ = function (id) { return document.getElementById(id); };
+  var tela = $('tela'), ctx = tela.getContext('2d');
+  var D = Desenho.criar(ctx, dados);
+  var roleta = Roleta.criar(dados);
+  var video = document.createElement('video');
+  video.muted = true; video.playsInline = true; video.setAttribute('playsinline', '');
+  var camera = null, gravador = null, pedacos = [], gravando = false, tGravacao = 0, fimEm = null;
+  var blob = null, ext = 'webm', url = null, trava = null;
+
+  function desenhar() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#111'; ctx.fillRect(0, 0, W, H);
+    if (video.readyState >= 2 && video.videoWidth) {
+      var vw = video.videoWidth, vh = video.videoHeight, s = Math.max(W / vw, H / vh);
+      ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1);   // espelhado, como uma selfie
+      ctx.drawImage(video, (W - vw * s) / 2, (H - vh * s) / 2, vw * s, vh * s);
+      ctx.restore();
+    }
+    ctx.setTransform(ESC, 0, 0, ESC, 0, 0);
+    D.sobreposicao(roleta.estado());
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  var ultimo = performance.now();
+  function quadro(agora) {
+    var dt = Math.min(0.1, (agora - ultimo) / 1000); ultimo = agora;
+    if (gravando) {
+      tGravacao += dt;
+      var e = roleta.estado();
+      if (e.fase === 'parado' && tGravacao >= ESPERA_INICIO) roleta.iniciar();
+      roleta.atualizar(dt);
+      if (roleta.estado().fase === 'fim') {
+        if (fimEm === null) fimEm = tGravacao;
+        if (tGravacao - fimEm >= SEGURA_FIM) pararGravacao();
+      }
+    }
+    desenhar();
+    requestAnimationFrame(quadro);
+  }
+
+  function mostrarErroInicio(msg) { var el = $('erroInicio'); el.textContent = msg; el.hidden = false; }
+
+  function abrirCamera() {
+    $('erroInicio').hidden = true;
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      mostrarErroInicio('Este navegador não libera a câmera aqui. Abra o link no Chrome do celular (endereço começando com https://).');
+      return;
+    }
+    var pedir = function (comAudio) {
+      return navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 }, frameRate: { ideal: 30 } },
+        audio: comAudio ? { echoCancellation: true, noiseSuppression: true } : false
+      });
+    };
+    $('bCamera').disabled = true; $('bCamera').textContent = 'Abrindo…';
+    pedir(true).catch(function (err) {
+      if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) throw err;
+      return pedir(false);           // sem microfone, se só ele falhar
+    }).then(function (s) {
+      camera = s;
+      video.srcObject = s;
+      return video.play();
+    }).then(function () {
+      $('cInicio').hidden = true;
+      $('controles').hidden = false;
+      $('selo').hidden = false; $('selo').textContent = camera.getAudioTracks().length ? 'Câmera' : 'Câmera (sem som)';
+    }).catch(function (err) {
+      $('bCamera').disabled = false; $('bCamera').textContent = 'Abrir câmera';
+      if (err && err.name === 'NotAllowedError') mostrarErroInicio('A câmera foi bloqueada. Toque no cadeado ao lado do endereço → Permissões → Câmera e Microfone → Permitir. Depois recarregue a página.');
+      else if (err && err.name === 'NotFoundError') mostrarErroInicio('Nenhuma câmera encontrada neste aparelho.');
+      else if (err && err.name === 'NotReadableError') mostrarErroInicio('A câmera está sendo usada por outro app. Feche o outro app e tente de novo.');
+      else mostrarErroInicio('Não consegui abrir a câmera (' + (err && (err.name || err.message)) + ').');
+    });
+  }
+
+  function tipo() {
+    var op = [['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'mp4'], ['video/mp4;codecs=avc1,opus', 'mp4'], ['video/mp4', 'mp4'],
+      ['video/webm;codecs=vp9,opus', 'webm'], ['video/webm;codecs=vp8,opus', 'webm'], ['video/webm', 'webm']];
+    for (var i = 0; i < op.length; i++) if (MediaRecorder.isTypeSupported(op[i][0])) return op[i];
+    return ['', 'webm'];
+  }
+
+  function comecarGravacao() {
+    if (!window.MediaRecorder || !tela.captureStream) { alert('Este navegador não grava vídeo. Use o Chrome atualizado.'); return; }
+    var stream = tela.captureStream(30);
+    camera.getAudioTracks().forEach(function (t) { stream.addTrack(t); });
+    var t = tipo(); ext = t[1];
+    try { gravador = new MediaRecorder(stream, t[0] ? { mimeType: t[0], videoBitsPerSecond: 8000000 } : undefined); }
+    catch (e) { gravador = new MediaRecorder(stream); }
+    pedacos = [];
+    gravador.ondataavailable = function (ev) { if (ev.data && ev.data.size) pedacos.push(ev.data); };
+    gravador.onstop = function () {
+      stream.getVideoTracks().forEach(function (tr) { tr.stop(); });
+      blob = new Blob(pedacos, { type: gravador.mimeType || ('video/' + ext) });
+      if (/mp4/.test(blob.type)) ext = 'mp4';
+      if (url) URL.revokeObjectURL(url);
+      url = URL.createObjectURL(blob);
+      $('resultado').src = url;
+      $('infoPronto').textContent = 'Vídeo ' + ext.toUpperCase() + ', ' + (blob.size / 1048576).toFixed(1).replace('.', ',') + ' MB. No TikTok: + → Carregar, ou use Compartilhar.';
+      $('bCompartilhar').hidden = !podeCompartilhar();
+      $('cPronto').hidden = false;
+      $('controles').hidden = true;
+      $('selo').hidden = true;
+    };
+    roleta.reiniciar(); tGravacao = 0; fimEm = null;
+    gravador.start(500);
+    gravando = true;
+    $('bGravar').classList.add('ativo'); $('bGravar').setAttribute('aria-label', 'Parar');
+    $('selo').textContent = '● Gravando'; $('selo').className = 'selo gravando';
+    $('dica').textContent = 'Reaja! Para sozinho no fim.';
+    if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (w) { trava = w; }).catch(function () {});
+  }
+
+  function pararGravacao() {
+    if (!gravando) return;
+    gravando = false;
+    $('bGravar').classList.remove('ativo'); $('bGravar').setAttribute('aria-label', 'Gravar');
+    $('selo').className = 'selo'; $('selo').textContent = 'Câmera';
+    $('dica').textContent = 'Toque no botão pra gravar. A bolinha começa sozinha.';
+    if (gravador && gravador.state !== 'inactive') gravador.stop();
+    if (trava) { trava.release().catch(function () {}); trava = null; }
+  }
+
+  function arquivo() { return new File([blob], 'minha-vida-adulta.' + ext, { type: blob.type.split(';')[0] || ('video/' + ext) }); }
+  function podeCompartilhar() {
+    try { return !!(navigator.canShare && blob && navigator.canShare({ files: [arquivo()] })); } catch (e) { return false; }
+  }
+
+  $('bCamera').addEventListener('click', abrirCamera);
+  $('bGravar').addEventListener('click', function () { if (gravando) pararGravacao(); else comecarGravacao(); });
+  $('bCompartilhar').addEventListener('click', function () {
+    navigator.share({ files: [arquivo()], title: 'Minha vida adulta de acordo com o filtro' }).catch(function (e) {
+      if (e && e.name !== 'AbortError') $('infoPronto').textContent = 'Não deu pra compartilhar direto. Use "Salvar no celular" e poste pelo TikTok.';
+    });
+  });
+  $('bSalvar').addEventListener('click', function () {
+    var a = document.createElement('a');
+    a.href = url; a.download = 'minha-vida-adulta.' + ext;
+    document.body.appendChild(a); a.click(); a.remove();
+    $('infoPronto').textContent = 'Salvo na pasta Downloads. No TikTok: + → Carregar → escolha o vídeo.';
+  });
+  $('bDeNovo').addEventListener('click', function () {
+    $('cPronto').hidden = true; $('controles').hidden = false; $('selo').hidden = false;
+    roleta.reiniciar();
+  });
+
+  var comecou = false;
+  var iniciar = function () { if (comecou) return; comecou = true; requestAnimationFrame(quadro); };
+  (document.fonts && document.fonts.load ? document.fonts.load(D.fonte(46), 'Áá') : Promise.resolve()).then(iniciar, iniciar);
+  setTimeout(iniciar, 2500);
+})();
+</script>
+</body>
+</html>

@@ -102,7 +102,16 @@ para publicação.
    Se o efeito for recusado por marca registrada, troque esses itens em `dados/resultados.json`.
 5. **Aprovado:** o efeito aparece no seu perfil, na aba de efeitos, e qualquer pessoa pode usar.
 
-## Usar agora no celular (sem o Effect House)
+## Gravar ao vivo no celular (recomendado)
+
+Abra no **Chrome do celular**:
+https://raw.githack.com/savantarmorer/33/ccr-db51c0b9-fxzde9/minha-vida-adulta/camera/index.html
+
+Toque em **Abrir câmera** e permita a câmera e o microfone. Depois toque no botão vermelho: a bolinha começa
+sozinha e o vídeo para no fim, em cerca de 25 s. Use **Compartilhar** para mandar direto pro TikTok ou
+**Salvar no celular**. O arquivo da página é `camera/index.html`.
+
+## Usar com um vídeo já gravado (página no Claude)
 
 1. Grave um vídeo seu com a câmera frontal, de 25 a 35 s, reagindo como se estivesse vendo o sorteio.
    Também dá pra tocar em **Gravar agora** na própria página, que abre a câmera do celular.

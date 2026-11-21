@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>Minha Vida Adulta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap">
+<style>
+  /* Câmera ao vivo em tela cheia: palco 9:16 centralizado no preto, controles por cima, embaixo. */
+  :root {
+    color-scheme: dark;
+    --fundo: #000; --superficie: rgba(22,22,28,.94); --borda: #34343e; --texto: #f4f4f6; --suave: #b0b0bb;
+    --amarelo: #FFC800; --amarelo-texto: #1d1600; --vermelho: #ff2d3d; --erro: #ff7b7b;
+    --ui: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto); font: 500 15px/1.45 var(--ui); overflow: hidden; }
+  .palco { position: fixed; inset: 0; display: grid; place-items: center; }
+  canvas { height: 100%; width: auto; max-width: 100%; aspect-ratio: 9 / 16; object-fit: contain; display: block; background: #111; }
+  @media (max-aspect-ratio: 9/16) { canvas { width: 100%; height: auto; } }
+
+  .topo { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 12px); left: 12px; right: 12px; display: flex; justify-content: center; pointer-events: none; }
+  .selo { padding: 5px 12px; border-radius: 999px; background: rgba(0,0,0,.6); font-weight: 700; font-size: 13px; }
+  .selo.gravando { background: var(--vermelho); }
+
+  .controles { position: fixed; left: 0; right: 0; bottom: 0; padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 22px) max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; align-items: center; gap: 10px; background: linear-gradient(transparent, rgba(0,0,0,.55)); }
+  .dica { font-weight: 700; text-shadow: 0 1px 4px #000; text-align: center; }
+  .gravar { width: 78px; height: 78px; border-radius: 50%; border: 5px solid #fff; background: transparent; padding: 0; cursor: pointer; display: grid; place-items: center; }
+  .gravar span { width: 58px; height: 58px; border-radius: 50%; background: var(--vermelho); transition: all .2s; }
+  .gravar.ativo span { width: 30px; height: 30px; border-radius: 8px; }
+  .gravar:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 4px; }
+
+  .cartao { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; background: var(--superficie); border: 1px solid var(--borda); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .cartao h1 { margin: 0; font: 900 22px/1.15 var(--ui); }
+  .cartao h1 span { color: var(--amarelo); }
+  .cartao p { margin: 0; color: var(--suave); }
+  .btn { font: 700 16px/1.2 var(--ui); min-height: 52px; padding: 14px; border-radius: 12px; border: 1.5px solid var(--borda); background: transparent; color: var(--texto); cursor: pointer; width: 100%; }
+  .btn.principal { background: var(--amarelo); border-color: var(--amarelo); color: var(--amarelo-texto); }
+  .btn:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 2px; }
+  .duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .erro { color: var(--erro); }
+  video.resultado { width: 100%; max-height: 52vh; border-radius: 12px; background: #000; }
+  ol { margin: 0; padding-left: 20px; color: var(--suave); display: flex; flex-direction: column; gap: 6px; }
+  .pequeno { font-size: 13px; }
+  .gravar.ativo span, .gravar span { will-change: transform; }
+  @media (prefers-reduced-motion: reduce) { .gravar span { transition: none; } }
+</style>
+</head>
+<body>
+<div class="palco"><canvas id="tela" width="720" height="1280" aria-label="Câmera com o efeito"></canvas></div>
+<div class="topo"><div class="selo" id="selo" hidden></div></div>
+
+<div class="controles" id="controles" hidden>
+  <div class="dica" id="dica">Toque no botão pra gravar. A bolinha começa sozinha.</div>
+  <button class="gravar" id="bGravar" aria-label="Gravar"><span></span></button>
+</div>
+
+<div class="cartao" id="cInicio">
+  <h1>Minha vida adulta <span>de acordo com o filtro</span></h1>
+  <p>Abra a câmera frontal, toque no botão vermelho e reaja ao sorteio. O vídeo para sozinho no fim, em uns 25 segundos.</p>
+  <button class="btn principal" id="bCamera">Abrir câmera</button>
+  <p class="pequeno">O navegador vai pedir permissão de câmera e microfone. Toque em <strong>Permitir</strong>.</p>
+  <p class="erro" id="erroInicio" hidden></p>
+</div>
+
+<div class="cartao" id="cPronto" hidden>
+  <h1>Ficou <span>pronto</span></h1>
+  <video class="resultado" id="resultado" controls playsinline></video>
+  <button class="btn principal" id="bCompartilhar">Compartilhar (TikTok)</button>
+  <div class="duplo">
+    <button class="btn" id="bSalvar">Salvar no celular</button>
+    <button class="btn" id="bDeNovo">Gravar de novo</button>
+  </div>
+  <p class="pequeno" id="infoPronto"></p>
+</div>
+
+<script>
+/*
+ * Minha vida adulta de acordo com o filtro — motor da roleta.
+ *
+ * JavaScript puro, sem DOM e sem API do Effect House: so recebe o tempo
+ * (dt em segundos) e devolve o estado. O preview (preview/) e o script do
+ * Effect House usam este mesmo arquivo; cada um so desenha o estado.
+ *
+ * Uso:
+ *   const r = Roleta.criar(dados);          // dados = resultados.json
+ *   r.iniciar();                            // ao gravar / tocar na tela
+ *   a cada frame: r.atualizar(dt); const e = r.estado();
+ *     e.bola      -> posicao da bolinha em "linhas" (-1 = topo da linha,
+ *                    0 = 1a categoria, 5 = 6a categoria). null antes de iniciar.
+ *     e.linhas[i] -> { texto, estado: 'vazio' | 'girando' | 'final' }
+ *     e.fase      -> 'parado' | 'descendo' | 'girando' | 'segurando' | 'fim'
+ */
+(function (raiz, fabrica) {
+  if (typeof module === 'object' && module.exports) module.exports = fabrica();
+  else raiz.Roleta = fabrica();
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+
+  // Tempos em segundos.
+  var TEMPOS = {
+    primeiraDescida: 0.8, // do topo da linha ate a 1a categoria
+    descida: 0.55,        // de uma categoria ate a proxima
+    roleta: 1.7,          // troca rapida desacelerando
+    trocaMin: 0.05,       // intervalo entre trocas no inicio da roleta
+    trocaMax: 0.34,       // intervalo entre trocas no fim da roleta
+    pausa: 1.5            // segura o resultado antes de descer
+  };
+
+  // Layout de referencia em pixels numa tela 1080 x 1920 (9:16).
+  // Para o Effect House, divida por 1080 (x) e 1920 (y) para coordenadas
+  // normalizadas. Ja respeita a zona segura do TikTok:
+  //   topo 0-210 (abas), base 1460-1920 (legenda/musica),
+  //   direita 940-1080 entre y 560 e 1460 (botoes curtir/comentar/...).
+  var LAYOUT = {
+    largura: 1080,
+    altura: 1920,
+    titulo: { centroX: 540, topo: 236, larguraMax: 860, fonte: 66, fonteMin: 44, linhasMax: 2, entrelinha: 1.08 },
+    linha: { x: 318, yTopo: 470, yBase: 1410, espessura: 8 },
+    linhas: { yPrimeira: 560, espaco: 168 },   // 6 categorias: 560, 728, ..., 1400
+    circulo: { raio: 24, borda: 6 },
+    bola: { raio: 19 },
+    nome: { direita: 272, larguraMax: 232, fonte: 46, fonteMin: 30 },
+    resultado: { esquerda: 364, larguraMax: 566, fonte: 46, fonteMin: 30, linhasMax: 2, entrelinha: 1.06 },
+    contorno: 0.24,                               // largura do traco do contorno = fonte * 0.24
+    cores: { texto: '#FFFFFF', contorno: '#000000', linha: '#FFFFFF', circulo: '#8A8A8A', bola: '#FFC800' }
+  };
+
+  function mulberry32(semente) {
+    var a = semente >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function suave(p) { return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
+
+  function criar(dados, opcoes) {
+    opcoes = opcoes || {};
+    var cats = dados.categorias;
+    var t = {};
+    var k;
+    for (k in TEMPOS) t[k] = TEMPOS[k];
+    if (opcoes.tempos) for (k in opcoes.tempos) t[k] = opcoes.tempos[k];
+    var rng = opcoes.rng || Math.random;
+
+    var fase, idx, tFase, bola, de, para, linhas, finais, proximaTroca, ultimoSorteio;
+
+    function sortear(n, evitar) {
+      if (n <= 1) return 0;
+      var i;
+      do { i = Math.floor(rng() * n); } while (i === evitar);
+      return i;
+    }
+
+    function reiniciar() {
+      fase = 'parado';
+      idx = 0;
+      tFase = 0;
+      bola = null;
+      linhas = cats.map(function () { return { texto: '', estado: 'vazio' }; });
+      finais = [];
+      ultimoSorteio = -1;
+    }
+
+    function iniciar() {
+      if (fase !== 'parado') return false;
+      finais = cats.map(function (c) { return sortear(c.resultados.length, -1); });
+      fase = 'descendo';
+      idx = 0;
+      tFase = 0;
+      de = -1;
+      para = 0;
+      bola = -1;
+      return true;
+    }
+
+    function atualizar(dt) {
+      if (!(dt > 0)) return;
+      if (dt > 0.25) dt = 0.25; // evita pular etapas se o app travar
+      var resto = dt;
+      var guarda = 0;
+      while (resto > 0 && guarda++ < 50) {
+        if (fase === 'parado' || fase === 'fim') return;
+        if (fase === 'descendo') {
+          var dur = idx === 0 ? t.primeiraDescida : t.descida;
+          var usa = Math.min(resto, dur - tFase);
+          tFase += usa; resto -= usa;
+          bola = de + (para - de) * suave(Math.min(1, tFase / dur));
+          if (tFase >= dur - 1e-9) {
+            bola = para;
+            fase = 'girando'; tFase = 0; proximaTroca = 0; ultimoSorteio = -1;
+            linhas[idx].estado = 'girando';
+          }
+        } else if (fase === 'girando') {
+          var usaG = Math.min(resto, t.roleta - tFase);
+          tFase += usaG; resto -= usaG;
+          var lista = cats[idx].resultados;
+          while (proximaTroca <= tFase && proximaTroca < t.roleta) {
+            ultimoSorteio = sortear(lista.length, ultimoSorteio);
+            linhas[idx].texto = lista[ultimoSorteio];
+            var p = proximaTroca / t.roleta;
+            proximaTroca += t.trocaMin + (t.trocaMax - t.trocaMin) * p * p;
+          }
+          if (tFase >= t.roleta - 1e-9) {
+            linhas[idx].texto = lista[finais[idx]];
+            linhas[idx].estado = 'final';
+            fase = 'segurando'; tFase = 0;
+          }
+        } else if (fase === 'segurando') {
+          var usaS = Math.min(resto, t.pausa - tFase);
+          tFase += usaS; resto -= usaS;
+          if (tFase >= t.pausa - 1e-9) {
+            if (idx < cats.length - 1) {
+              de = idx; idx += 1; para = idx;
+              fase = 'descendo'; tFase = 0;
+            } else {
+              fase = 'fim';
+            }
+          }
+        }
+      }
+    }
+
+    function estado() {
+      return {
+        fase: fase,
+        indice: idx,
+        bola: bola,
+        linhas: linhas.map(function (l) { return { texto: l.texto, estado: l.estado }; })
+      };
+    }
+
+    reiniciar();
+    return { iniciar: iniciar, atualizar: atualizar, estado: estado, reiniciar: reiniciar };
+  }
+
+  // Duracao total de uma rodada completa (para conferir que cabe no video).
+  function duracaoTotal(nCategorias, tempos) {
+    var t = tempos || TEMPOS;
+    return t.primeiraDescida + (nCategorias - 1) * t.descida + nCategorias * (t.roleta + t.pausa);
+  }
+
+  return { criar: criar, TEMPOS: TEMPOS, LAYOUT: LAYOUT, mulberry32: mulberry32, duracaoTotal: duracaoTotal };
+});
+
+</script>
+<script>
+/*
+ * Desenho do efeito num <canvas> 2D (referencia 1080 x 1920).
+ * Usado pelo preview e pela pagina de gravacao. Precisa de src/roleta.js.
+ *
+ *   const d = Desenho.criar(ctx, dados);
+ *   d.sobreposicao(roleta.estado());   // desenha titulo, linha, bolinha e textos
+ *   d.verificar(zonas)                 // confere os textos de todas as categorias
+ */
+(function (raiz, fabrica) {
+  if (typeof module === 'object' && module.exports) module.exports = fabrica();
+  else raiz.Desenho = fabrica();
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+
+  var FAMILIA = '"Montserrat", "Arial Black", "Inter", sans-serif';
+
+  function criar(ctx, dados, opcoes) {
+    opcoes = opcoes || {};
+    var L = (opcoes.layout || (typeof Roleta !== 'undefined' && Roleta.LAYOUT));
+    var N = dados.categorias.length;
+    var api = { mostrarCaixas: false };
+
+    function fonte(px) { return '900 ' + px + 'px ' + FAMILIA; }
+
+    // Quebra o texto em ate linhasMax linhas, diminuindo a fonte se precisar.
+    function ajustar(texto, larguraMax, fMax, fMin, linhasMax) {
+      for (var f = fMax; f >= fMin; f -= 1) {
+        ctx.font = fonte(f);
+        var util = larguraMax - f * L.contorno;
+        var palavras = texto.split(/\s+/), linhas = [], atual = '', cabe = true;
+        for (var i = 0; i < palavras.length; i++) {
+          var teste = atual ? atual + ' ' + palavras[i] : palavras[i];
+          if (ctx.measureText(teste).width <= util) atual = teste;
+          else {
+            if (!atual) { cabe = false; break; }
+            linhas.push(atual); atual = palavras[i];
+            if (ctx.measureText(atual).width > util) { cabe = false; break; }
+          }
+        }
+        if (atual) linhas.push(atual);
+        if (cabe && linhas.length <= linhasMax) {
+          var larg = 0;
+          for (var j = 0; j < linhas.length; j++) larg = Math.max(larg, ctx.measureText(linhas[j]).width);
+          return { fonte: f, linhas: linhas, largura: larg + f * L.contorno, cabe: true };
+        }
+      }
+      ctx.font = fonte(fMin);
+      return { fonte: fMin, linhas: [texto], largura: ctx.measureText(texto).width + fMin * L.contorno, cabe: false };
+    }
+
+    // Caixa ocupada (x0,y0,x1,y1) por um bloco de texto.
+    function caixa(aj, ancora, x, yCentro, entrelinha) {
+      var h = aj.fonte * entrelinha * aj.linhas.length + aj.fonte * L.contorno;
+      var x0 = ancora === 'esq' ? x : ancora === 'dir' ? x - aj.largura : x - aj.largura / 2;
+      return { x0: x0, x1: x0 + aj.largura, y0: yCentro - h / 2, y1: yCentro + h / 2 };
+    }
+
+    function texto(aj, ancora, x, yCentro, entrelinha) {
+      ctx.font = fonte(aj.fonte);
+      ctx.textAlign = ancora === 'esq' ? 'left' : ancora === 'dir' ? 'right' : 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round'; ctx.miterLimit = 2;
+      ctx.lineWidth = aj.fonte * L.contorno;
+      ctx.strokeStyle = L.cores.contorno; ctx.fillStyle = L.cores.texto;
+      var lh = aj.fonte * entrelinha, n = aj.linhas.length;
+      var dx = ancora === 'esq' ? aj.fonte * L.contorno / 2 : ancora === 'dir' ? -aj.fonte * L.contorno / 2 : 0;
+      for (var i = 0; i < n; i++) {
+        var y = yCentro + (i - (n - 1) / 2) * lh;
+        ctx.strokeText(aj.linhas[i], x + dx, y);
+        ctx.fillText(aj.linhas[i], x + dx, y);
+      }
+      if (api.mostrarCaixas) {
+        var b = caixa(aj, ancora, x, yCentro, entrelinha);
+        ctx.save(); ctx.strokeStyle = aj.cabe ? '#00e5ff' : '#ff3030'; ctx.lineWidth = 2;
+        ctx.strokeRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); ctx.restore();
+      }
+    }
+
+    function yLinha(i) { return L.linhas.yPrimeira + i * L.linhas.espaco; }
+    function yBola(b) { return b < 0 ? L.linha.yTopo + (b + 1) * (L.linhas.yPrimeira - L.linha.yTopo) : yLinha(b); }
+    function titulo() { return ajustar(dados.titulo, L.titulo.larguraMax, L.titulo.fonte, L.titulo.fonteMin, L.titulo.linhasMax); }
+    function yTitulo(aj) { var t = L.titulo; return t.topo + (aj.fonte * t.entrelinha * aj.linhas.length + aj.fonte * L.contorno) / 2; }
+    function ajustarNome(i) { return ajustar(dados.categorias[i].nome, L.nome.larguraMax, L.nome.fonte, L.nome.fonteMin, 1); }
+    function ajustarResultado(t) { return ajustar(t, L.resultado.larguraMax, L.resultado.fonte, L.resultado.fonteMin, L.resultado.linhasMax); }
+
+    // Desenha tudo que fica por cima da camera.
+    function sobreposicao(e) {
+      var tj = titulo();
+      texto(tj, 'centro', L.titulo.centroX, yTitulo(tj), L.titulo.entrelinha);
+
+      ctx.fillStyle = L.cores.linha;
+      ctx.fillRect(L.linha.x - L.linha.espessura / 2, L.linha.yTopo, L.linha.espessura, L.linha.yBase - L.linha.yTopo);
+
+      for (var i = 0; i < N; i++) {
+        var y = yLinha(i), l = e.linhas[i];
+        ctx.beginPath(); ctx.arc(L.linha.x, y, L.circulo.raio, 0, Math.PI * 2);
+        ctx.fillStyle = l.estado === 'final' ? L.cores.bola : L.cores.circulo; ctx.fill();
+        ctx.lineWidth = L.circulo.borda; ctx.strokeStyle = L.cores.linha; ctx.stroke();
+        texto(ajustarNome(i), 'dir', L.nome.direita, y, 1.06);
+        if (l.texto) texto(ajustarResultado(l.texto), 'esq', L.resultado.esquerda, y, L.resultado.entrelinha);
+      }
+
+      if (e.bola !== null && e.fase !== 'fim') {
+        ctx.beginPath(); ctx.arc(L.linha.x, yBola(e.bola), L.bola.raio, 0, Math.PI * 2);
+        ctx.fillStyle = L.cores.bola; ctx.fill();
+        ctx.lineWidth = 4; ctx.strokeStyle = '#000'; ctx.stroke();
+      }
+    }
+
+    function sobrepoe(a, b) { return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1; }
+    function foraDaTela(b) { return b.x0 < 36 || b.x1 > L.largura - 36 || b.y0 < 0 || b.y1 > L.altura; }
+
+    // Confere titulo, nomes e TODOS os resultados contra a tela, as zonas e as linhas vizinhas.
+    function verificar(zonas) {
+      zonas = zonas || [];
+      var problemas = [], menorFonte = 99, todos = [];
+      var zonaCaixa = function (z) { return { x0: z.x, x1: z.x + z.w, y0: z.y, y1: z.y + z.h }; };
+      var tj = titulo(), bt = caixa(tj, 'centro', L.titulo.centroX, yTitulo(tj), L.titulo.entrelinha);
+      if (!tj.cabe) problemas.push('Título não cabe em 2 linhas');
+      if (bt.y1 > L.linha.yTopo - L.bola.raio - 10) problemas.push('Título encosta na linha/bolinha');
+      zonas.forEach(function (z) { if (sobrepoe(bt, zonaCaixa(z))) problemas.push('Título invade zona: ' + z.nome); });
+      if (foraDaTela(bt)) problemas.push('Título sai da tela');
+
+      var metade = L.linhas.espaco / 2, folga = 6;
+      for (var i = 0; i < N; i++) {
+        var y = yLinha(i), cat = dados.categorias[i];
+        var faixa = { y0: y - metade + folga, y1: y + metade - folga };
+        var nj = ajustarNome(i), bn = caixa(nj, 'dir', L.nome.direita, y, 1.06);
+        if (!nj.cabe) problemas.push('Nome "' + cat.nome + '" não cabe');
+        if (bn.x1 > L.linha.x - L.circulo.raio - 8) problemas.push('Nome "' + cat.nome + '" encosta no círculo');
+        if (foraDaTela(bn)) problemas.push('Nome "' + cat.nome + '" sai da tela');
+        cat.resultados.forEach(function (txt) {
+          var rj = ajustarResultado(txt), b = caixa(rj, 'esq', L.resultado.esquerda, y, L.resultado.entrelinha);
+          menorFonte = Math.min(menorFonte, rj.fonte);
+          todos.push({ txt: txt, fonte: rj.fonte, linhas: rj.linhas.length });
+          var p = [];
+          if (!rj.cabe) p.push('não cabe em 2 linhas');
+          if (b.y0 < faixa.y0 || b.y1 > faixa.y1) p.push('invade a linha vizinha');
+          if (b.x0 < L.linha.x + L.circulo.raio + 6) p.push('encosta no círculo');
+          if (foraDaTela(b)) p.push('sai da tela');
+          zonas.forEach(function (z) { if (sobrepoe(b, zonaCaixa(z))) p.push('invade zona ' + z.nome); });
+          if (sobrepoe(b, bt)) p.push('sobrepõe o título');
+          if (p.length) problemas.push(cat.nome + ': "' + txt + '" → ' + p.join(', '));
+        });
+      }
+      todos.sort(function (a, b) { return a.fonte - b.fonte || b.txt.length - a.txt.length; });
+      return { ok: problemas.length === 0, problemas: problemas, menorFonte: menorFonte, fonteTitulo: tj.fonte,
+        linhasTitulo: tj.linhas.length, piores: todos.slice(0, 6), total: todos.length };
+    }
+
+    // Estado com o resultado mais apertado de cada categoria (pior caso de layout).
+    function estadoLongos() {
+      return {
+        fase: 'fim', indice: N - 1, bola: null,
+        linhas: dados.categorias.map(function (c) {
+          var maior = c.resultados.slice().sort(function (a, b) {
+            return ajustarResultado(a).fonte - ajustarResultado(b).fonte || b.length - a.length;
+          })[0];
+          return { texto: maior, estado: 'final' };
+        })
+      };
+    }
+
+    api.fonte = fonte;
+    api.sobreposicao = sobreposicao;
+    api.verificar = verificar;
+    api.estadoLongos = estadoLongos;
+    return api;
+  }
+
+  return { criar: criar, FAMILIA: FAMILIA };
+});
+
+</script>
+<script>
+window.RESULTADOS = {"titulo":"Minha vida adulta de acordo com o filtro:","categorias":[{"nome":"Salário","resultados":["3 coxinhas e um abraço","Pago em figurinha da Copa","R$ 0,47 e uma ameaça","Recebe em Robux","1 cabra por mês","Vale-coxinha","R$ 12 mil em dinheiro de Banco Imobiliário","Moedas num pote de maionese","Pix de R$ 1 escrito \"vlw\"","Gift card vencido","Paga pra trabalhar","Recebe em elogio","Bitcoin que caiu ontem","Pago em exposição no story do chefe","Um vale-night da sogra","Meio salário mínimo e um pastel de brinde","R$ 3 mil (em tampinhas)","Pago em milhas que expiram amanhã","Uma marmita por semana","Recebe em likes","Cesta básica sem o arroz","R$ 900 menos o Pix que deve ao chefe","Pago com cheque de 1998","Um boleto (pra pagar)","Pago em ações de uma padaria","Salário de deputado (em sonho)","R$ 50 e um tapinha nas costas","Vale-refeição que só passa na cantina","Pago em cupom de 10% off","Recebe em Pokémon raro","Um saco de cimento de 50 kg","\"Fica pra semana que vem\"","Pago em ingresso de forró","Recebe as horas extras de outra pessoa","Salário em libras (de carne)","Um ovo de Páscoa em novembro","Recebe em fé","120 parcelas de R$ 0,99","Bônus: um mouse sem fio","13º sorteado numa rifa","R$ 1.200, tudo em moeda de 1 real","Pago em kombucha caseiro","Recebe em gratidão 🙏","Um cachorro-quente e \"valeu, mano\"","Pago em dívidas perdoadas","Comissão de 0,0001%","Pix agendado para 2031","Recebe em NFT de macaco","Um pacote de bolacha já aberto","Pago em semente de girassol"]},{"nome":"Casa","resultados":["Dentro de um guarda-roupa de loja","No porta-malas de um Gol bola","Divide kitnet com 4 pombos","Na casa da ex","Ilha de trânsito na Marginal","Embaixo da escada da mãe","Dentro de um outdoor","Num iglu em Teresina","Escondido numa loja de material de construção","No quarto da avó (ela ainda tá lá)","Barraca no meio da Faria Lima","Contêiner com Wi-Fi do vizinho","Casa da árvore do sobrinho","Airbnb mal-assombrado","Num carrinho de supermercado tunado","Num banheiro químico de festa","Dentro de um Fusca rebaixado","Na casa do ex da mãe","Numa caverna com Wi-Fi","Na sala de espera do dentista","Num quiosque de praia fechado","Embaixo de uma ponte com sacada","Num motel (plano mensal)","Dentro de uma caixa d'água","Camarote de um estádio abandonado","Na casa da vizinha fofoqueira","Num ônibus que nunca chega","República com 23 calouros","Dentro de um armário de academia","Casa de 4 andares (de papelão)","Na garagem do primo, junto com o carro","Apê \"conceito\" de 9 m²","Num cruzeiro (de clandestino)","Na laje do vizinho","Num trailer sem rodas","Na igreja (diz que é o zelador)","Numa caixa de geladeira","Na despensa da avó","Num castelo inflável","No escritório (ninguém sabe)","Na varanda do síndico","Num farol abandonado","Numa cabana no mato com o tio","Sobrado assombrado por um padre","Na fila do INSS","Quarto de hotel que ninguém paga","No apartamento decorado da construtora","Na rodoviária","Num submarino alugado","Numa tenda de circo"]},{"nome":"Dívida","resultados":["R$ 80 mil pra um palhaço","Deve a alma pro tio do pavê","3 rins pro banco","O agiota é tua avó","R$ 4 mil em skin de jogo","Deve um cavalo","Parcelou um miojo em 24x","Serasa mandou flores no teu aniversário","R$ 1,50 desde 2009 (o cara lembra)","Financiou um PS2 em 2026","Deve um juramento a uma seita","Pensão pra um Tamagotchi","Pix do bolão da Copa de 2014","Deve favor pro síndico","O banco te deve (ninguém acredita)","R$ 200 pra uma cartomante","Uma moto pro tio","14 meses de academia que nunca foi","R$ 600 em figurinhas","Um rim pro vizinho","Uma vaca pra um fazendeiro de Goiás","R$ 30 mil em curso de coach","Deve desculpas pra 47 pessoas","Seis meses de streaming da ex","Deve o carro pra financeira do carro","Um Pix pro pastor","Uma dentadura pro avô","O salão do casamento que não aconteceu","Parcelou o próprio aniversário","R$ 9 mil em corrida de app pra ir num trampo de R$ 1.500","Consignado da tia","3 aluguéis pra mãe","Uma sanfona","Juros de 1987","Cheque sem fundo pra um padre","Um favor que ninguém quer cobrar","Rifa de um carro que não existia","Uma geladeira parcelada em 2004","R$ 500 do bolão do BBB","Fatura do cartão em 3 idiomas","Deve uma explicação pra Receita","No SPC desde o berço","Um trabalho de faculdade pro amigo","Comprou fiado um curso de \"como sair das dívidas\"","Uma panela de pressão pra sogra","R$ 150 pro bruxo da amarração","Aposta perdida pro irmão","Um carro que usou 1 vez","Horas de sono desde 2015","Uma dívida com o próprio eu do futuro"]},{"nome":"Emprego","resultados":["Testador de colchão","Coach de pombos","Fiscal de fila de lotérica","Reiki pra plantas","Vendedor de pirâmide de pirâmide","Influencer de pochete","Provador de ração","Assessor de imprensa de um cachorro","Segurança de festa infantil","Admin do grupo da família","CEO de si mesmo (CNPJ suspenso)","Narrador de briga de vizinho","Garoto-propaganda de remédio pra gases","Mascote de posto de gasolina","Estagiário do estagiário","Dublê de manequim","Passeador de peixe","Contador de grãos de arroz","Babá de planta","Degustador de água","Professor de respiração","Fiscal de nuvem","Vendedor de vento engarrafado","Treinador de pombo-correio (em 2026)","Telemarketing de cemitério","Cosplayer de poste","Organizador de gaveta dos outros","Estátua viva aposentada","Coach quântico","Guru de cripto que só perdeu","Animador de velório","Panfleteiro em dia de chuva","A voz da URA do banco","Segurança de tenda vazia","Faz fila pra rico","Avaliador de pastel de feira","Leitor profissional de termos de uso","Figurante de comercial de banco","Sommelier de miojo","Psicólogo de gato","Cerimonialista de chá revelação","Testador de montanha-russa (desmaia)","Vigia de obra parada há 12 anos","Instrutor de autoescola sem carteira","Médium de pets","Puxa-saco profissional","Imitador de buzina","Palhaço de festa de divórcio","DJ de elevador","Tradutor dos áudios de 7 minutos da tia"]},{"nome":"Amor","resultados":["Casado com uma geladeira","Namora o entregador do iFood","Relacionamento sério com o próprio reflexo","Casou bêbado com um Elvis em Vegas","Namora 3 pessoas que se conhecem","Divorciado de uma planta","Apaixonado pela voz do GPS","Deu match com a prima","Namora há 8 anos alguém que nunca viu","Traído pela samambaia","O ex virou teu chefe","Ainda manda bom dia pro ex","Noivo há 11 anos","Ficante: o vizinho de cima","Crush no atendente do SAC","Namora um holograma","Casado com o trabalho (ele te traiu)","Ficante: o personal da tua mãe","Noivo do próprio carro","Paixão platônica pelo frentista","Separado de corpos (e de senha do streaming)","Namora pelo LinkedIn","Casou 3 vezes com a mesma pessoa","Crush na voz do aviso do metrô","Relacionamento aberto (só o outro sabe)","Mora com 2 ex ao mesmo tempo","Shippado com o síndico","Pediu em casamento num velório","Ficou com o amigo secreto (era a prima)","Ama em silêncio desde a 5ª série","Namora um personagem de novela","Casou, mas foi num sonho","Largado por áudio de 9 minutos","Abandonado no altar (duas vezes)","Noivado de 3 dias, divórcio de 4 anos","Namora alguém que te chama de \"mano\"","A sogra mora com vocês (e manda)","Casado com 2 gatos e um rancor","Em crise com o próprio travesseiro","3 ficantes e nenhum responde","Namora alguém que diz ser da CIA","Apaixonado pelo cara do caminhão do gás","Ainda curte foto de 2016 do ex","Pede pizza só pra ver o entregador","Ficou com o instrutor da autoescola","Namora alguém que vende suplemento em pirâmide","Casou por causa do Wi-Fi","Recebe flores de um desconhecido (é o agiota)","Solteiro desde o Império","Noivo de uma mulher que conheceu no grupo de oração"]},{"nome":"Sonho","resultados":["Ser astronauta (virou motoboy)","Ganhar o BBB","Morar dentro de uma coxinha","Ser síndico","Ter uma cabra chamada Jurandir","Ganhar na Mega (nunca jogou)","Ser cancelado com classe","Abrir uma igreja","Conhecer o Paraguai","Ser imortal (desistiu às 15h)","Ficar rico sem trabalhar","Virar meme","Dormir até 2050","Comprar um iate em 400x","Ter paz","Ser influencer de tampa de panela","Ganhar uma rifa","Ter uma piscina de gelatina","Ser jurado de programa de calouros","Ter um haras (tem um pônei de pelúcia)","Abrir uma lanchonete chamada \"Lanchonete\"","Morar em Dubai (mora em Duque de Caxias)","Mochilão na Europa (chegou até Jundiaí)","Ser campeão mundial de truco","Ser cantor de churrascaria","Pular de paraquedas (tem medo de escada)","Ganhar um Oscar de melhor reação","Ser presidente (do grêmio)","Carro rebaixado com som de 10 mil watts","Ser lembrado por 5 minutos","Dormir uma noite sem boleto","Conhecer um alienígena","Montar uma banda de forró gótico","Escrever um livro (escreveu o título)","1 milhão de seguidores (tem 1 milhão de dívidas)","Ser fluente em inglês (sabe \"the book is on the table\")","Ter uma fazenda de lhamas","Ser imperador do Brasil","Viver de renda (renda de bilro)","Inventar um sabor de salgadinho","Ganhar uma luta de MMA contra o vizinho","Ter um chalé em Gramado","Ser professor de yoga de cabras","Ver o Brasil hexa","Pedir demissão gritando","Voltar no tempo e não fazer aquela tatuagem","Ser chamado de \"doutor\" sem faculdade","Ser dono de uma praia","Fugir com o circo","Ser rico aos 30 (tem 45)"]}]};
+</script>
+<script>
+(function () {
+  'use strict';
+  var dados = window.RESULTADOS;
+  var W = 720, H = 1280, ESC = W / 1080;
+  var ESPERA_INICIO = 0.6;   // segundos de gravação antes da bolinha começar
+  var SEGURA_FIM = 2.0;      // segundos com o resultado completo antes de parar
+  var $ = function (id) { return document.getElementById(id); };
+  var tela = $('tela'), ctx = tela.getContext('2d');
+  var D = Desenho.criar(ctx, dados);
+  var roleta = Roleta.criar(dados);
+  var video = document.createElement('video');
+  video.muted = true; video.playsInline = true; video.setAttribute('playsinline', '');
+  var camera = null, gravador = null, pedacos = [], gravando = false, tGravacao = 0, fimEm = null;
+  var blob = null, ext = 'webm', url = null, trava = null;
+
+  function desenhar() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#111'; ctx.fillRect(0, 0, W, H);
+    if (video.readyState >= 2 && video.videoWidth) {
+      var vw = video.videoWidth, vh = video.videoHeight, s = Math.max(W / vw, H / vh);
+      ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1);   // espelhado, como uma selfie
+      ctx.drawImage(video, (W - vw * s) / 2, (H - vh * s) / 2, vw * s, vh * s);
+      ctx.restore();
+    }
+    ctx.setTransform(ESC, 0, 0, ESC, 0, 0);
+    D.sobreposicao(roleta.estado());
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  var ultimo = performance.now();
+  function quadro(agora) {
+    var dt = Math.min(0.1, (agora - ultimo) / 1000); ultimo = agora;
+    if (gravando) {
+      tGravacao += dt;
+      var e = roleta.estado();
+      if (e.fase === 'parado' && tGravacao >= ESPERA_INICIO) roleta.iniciar();
+      roleta.atualizar(dt);
+      if (roleta.estado().fase === 'fim') {
+        if (fimEm === null) fimEm = tGravacao;
+        if (tGravacao - fimEm >= SEGURA_FIM) pararGravacao();
+      }
+    }
+    desenhar();
+    requestAnimationFrame(quadro);
+  }
+
+  function mostrarErroInicio(msg) { var el = $('erroInicio'); el.textContent = msg; el.hidden = false; }
+
+  function abrirCamera() {
+    $('erroInicio').hidden = true;
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      mostrarErroInicio('Este navegador não libera a câmera aqui. Abra o link no Chrome do celular (endereço começando com https://).');
+      return;
+    }
+    var pedir = function (comAudio) {
+      return navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 }, frameRate: { ideal: 30 } },
+        audio: comAudio ? { echoCancellation: true, noiseSuppression: true } : false
+      });
+    };
+    $('bCamera').disabled = true; $('bCamera').textContent = 'Abrindo…';
+    pedir(true).catch(function (err) {
+      if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) throw err;
+      return pedir(false);           // sem microfone, se só ele falhar
+    }).then(function (s) {
+      camera = s;
+      video.srcObject = s;
+      return video.play();
+    }).then(function () {
+      $('cInicio').hidden = true;
+      $('controles').hidden = false;
+      $('selo').hidden = false; $('selo').textContent = camera.getAudioTracks().length ? 'Câmera' : 'Câmera (sem som)';
+    }).catch(function (err) {
+      $('bCamera').disabled = false; $('bCamera').textContent = 'Abrir câmera';
+      if (err && err.name === 'NotAllowedError') mostrarErroInicio('A câmera foi bloqueada. Toque no cadeado ao lado do endereço → Permissões → Câmera e Microfone → Permitir. Depois recarregue a página.');
+      else if (err && err.name === 'NotFoundError') mostrarErroInicio('Nenhuma câmera encontrada neste aparelho.');
+      else if (err && err.name === 'NotReadableError') mostrarErroInicio('A câmera está sendo usada por outro app. Feche o outro app e tente de novo.');
+      else mostrarErroInicio('Não consegui abrir a câmera (' + (err && (err.name || err.message)) + ').');
+    });
+  }
+
+  function tipo() {
+    var op = [['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'mp4'], ['video/mp4;codecs=avc1,opus', 'mp4'], ['video/mp4', 'mp4'],
+      ['video/webm;codecs=vp9,opus', 'webm'], ['video/webm;codecs=vp8,opus', 'webm'], ['video/webm', 'webm']];
+    for (var i = 0; i < op.length; i++) if (MediaRecorder.isTypeSupported(op[i][0])) return op[i];
+    return ['', 'webm'];
+  }
+
+  function comecarGravacao() {
+    if (!window.MediaRecorder || !tela.captureStream) { alert('Este navegador não grava vídeo. Use o Chrome atualizado.'); return; }
+    var stream = tela.captureStream(30);
+    camera.getAudioTracks().forEach(function (t) { stream.addTrack(t); });
+    var t = tipo(); ext = t[1];
+    try { gravador = new MediaRecorder(stream, t[0] ? { mimeType: t[0], videoBitsPerSecond: 8000000 } : undefined); }
+    catch (e) { gravador = new MediaRecorder(stream); }
+    pedacos = [];
+    gravador.ondataavailable = function (ev) { if (ev.data && ev.data.size) pedacos.push(ev.data); };
+    gravador.onstop = function () {
+      stream.getVideoTracks().forEach(function (tr) { tr.stop(); });
+      blob = new Blob(pedacos, { type: gravador.mimeType || ('video/' + ext) });
+      if (/mp4/.test(blob.type)) ext = 'mp4';
+      if (url) URL.revokeObjectURL(url);
+      url = URL.createObjectURL(blob);
+      $('resultado').src = url;
+      $('infoPronto').textContent = 'Vídeo ' + ext.toUpperCase() + ', ' + (blob.size / 1048576).toFixed(1).replace('.', ',') + ' MB. No TikTok: + → Carregar, ou use Compartilhar.';
+      $('bCompartilhar').hidden = !podeCompartilhar();
+      $('cPronto').hidden = false;
+      $('controles').hidden = true;
+      $('selo').hidden = true;
+    };
+    roleta.reiniciar(); tGravacao = 0; fimEm = null;
+    gravador.start(500);
+    gravando = true;
+    $('bGravar').classList.add('ativo'); $('bGravar').setAttribute('aria-label', 'Parar');
+    $('selo').textContent = '● Gravando'; $('selo').className = 'selo gravando';
+    $('dica').textContent = 'Reaja! Para sozinho no fim.';
+    if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (w) { trava = w; }).catch(function () {});
+  }
+
+  function pararGravacao() {
+    if (!gravando) return;
+    gravando = false;
+    $('bGravar').classList.remove('ativo'); $('bGravar').setAttribute('aria-label', 'Gravar');
+    $('selo').className = 'selo'; $('selo').textContent = 'Câmera';
+    $('dica').textContent = 'Toque no botão pra gravar. A bolinha começa sozinha.';
+    if (gravador && gravador.state !== 'inactive') gravador.stop();
+    if (trava) { trava.release().catch(function () {}); trava = null; }
+  }
+
+  function arquivo() { return new File([blob], 'minha-vida-adulta.' + ext, { type: blob.type.split(';')[0] || ('video/' + ext) }); }
+  function podeCompartilhar() {
+    try { return !!(navigator.canShare && blob && navigator.canShare({ files: [arquivo()] })); } catch (e) { return false; }
+  }
+
+  $('bCamera').addEventListener('click', abrirCamera);
+  $('bGravar').addEventListener('click', function () { if (gravando) pararGravacao(); else comecarGravacao(); });
+  $('bCompartilhar').addEventListener('click', function () {
+    navigator.share({ files: [arquivo()], title: 'Minha vida adulta de acordo com o filtro' }).catch(function (e) {
+      if (e && e.name !== 'AbortError') $('infoPronto').textContent = 'Não deu pra compartilhar direto. Use "Salvar no celular" e poste pelo TikTok.';
+    });
+  });
+  $('bSalvar').addEventListener('click', function () {
+    var a = document.createElement('a');
+    a.href = url; a.download = 'minha-vida-adulta.' + ext;
+    document.body.appendChild(a); a.click(); a.remove();
+    $('infoPronto').textContent = 'Salvo na pasta Downloads. No TikTok: + → Carregar → escolha o vídeo.';
+  });
+  $('bDeNovo').addEventListener('click', function () {
+    $('cPronto').hidden = true; $('controles').hidden = false; $('selo').hidden = false;
+    roleta.reiniciar();
+  });
+
+  var comecou = false;
+  var iniciar = function () { if (comecou) return; comecou = true; requestAnimationFrame(quadro); };
+  (document.fonts && document.fonts.load ? document.fonts.load(D.fonte(46), 'Áá') : Promise.resolve()).then(iniciar, iniciar);
+  setTimeout(iniciar, 2500);
+})();
+</script>
+</body>
+</html>
