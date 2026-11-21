@@ -68,8 +68,16 @@
   .principal { background: var(--amarelo); border-color: var(--amarelo); color: var(--amarelo-texto); }
   .principal:hover:not(:disabled) { border-color: #fff; }
   .largo { grid-column: 1 / -1; width: 100%; }
-  .botao input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-  .botao { position: relative; }
+  /* O input de arquivo de verdade fica esticado por cima do botão, invisível: o toque cai direto nele
+     (alguns apps bloqueiam abrir a câmera por um <label> ou por input.click()). */
+  .botao { position: relative; overflow: hidden; }
+  .botao input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; z-index: 2; }
+  .ajuda { font-size: 14px; color: var(--suave); }
+  .ajuda summary { cursor: pointer; color: var(--texto); font-weight: 700; }
+  .ajuda p { margin: 8px 0 0; }
+  .copiar { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  .copiar code { font-size: 13px; background: var(--fundo); border: 1px solid var(--borda); border-radius: 8px; padding: 6px 8px; user-select: all; overflow-wrap: anywhere; min-width: 0; }
+  .copiar button { min-height: 36px; padding: 6px 12px; font-size: 13px; }
   .rotulo { font-size: 13px; color: var(--suave); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
   .segmentos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .segmentos button { min-height: 42px; padding: 8px; font-size: 14px; }
@@ -122,6 +130,15 @@
         </label>
       </div>
       <p class="info" id="infoVideo">Nenhum vídeo escolhido. O efeito ao lado é só uma demonstração.</p>
+      <details class="ajuda" id="ajudaCamera">
+        <summary>A câmera não abriu?</summary>
+        <p>Grave o vídeo pelo app Câmera do celular, com a câmera frontal, e depois toque em <strong>Escolher da galeria</strong>.</p>
+        <p>Se os botões não fizerem nada, o app do Claude está bloqueando arquivos nesta tela. Abra este link no Safari ou no Chrome (entre com a sua conta do Claude):</p>
+        <div class="copiar">
+          <code id="linkPagina">https://claude.ai/artifact/MkYHQGES16QRW421fte71A</code>
+          <button type="button" id="bCopiar">Copiar link</button>
+        </div>
+      </details>
     </section>
 
     <section class="bloco" id="blocoAjustes" hidden>
@@ -474,6 +491,12 @@ window.RESULTADOS = /*@@DADOS@@*/;
   function esconderErro() { $('erro').hidden = true; }
 
   $('arqCamera').addEventListener('change', escolherArquivo);
+  $('bCopiar').addEventListener('click', function () {
+    var txt = $('linkPagina').textContent, b = $('bCopiar');
+    var ok = function () { b.textContent = 'Copiado'; setTimeout(function () { b.textContent = 'Copiar link'; }, 2000); };
+    var selecionar = function () { var r = document.createRange(); r.selectNodeContents($('linkPagina')); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'Segure e copie'; };
+    try { navigator.clipboard.writeText(txt).then(ok, selecionar); } catch (e) { selecionar(); }
+  });
   $('arqGaleria').addEventListener('change', escolherArquivo);
   $('bPrevia').addEventListener('click', previa);
   $('bGerar').addEventListener('click', gerar);
