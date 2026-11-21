@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview da roleta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap">
+<style>
+  :root {
+    --bg: #111114; --painel: #1c1c21; --texto: #f2f2f5; --suave: #a3a3ad; --borda: #2e2e36;
+    --destaque: #FFC800; --destaque-texto: #1a1400; --ok: #3ccf7a; --erro: #ff5a5a;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4f4f6; --painel: #ffffff; --texto: #17171b; --suave: #5c5c66; --borda: #dcdce2;
+      --ok: #148a48; --erro: #c62828;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111114; --painel: #1c1c21; --texto: #f2f2f5; --suave: #a3a3ad; --borda: #2e2e36;
+    --ok: #3ccf7a; --erro: #ff5a5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--texto); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .app { display: flex; gap: 24px; justify-content: center; align-items: flex-start; padding: 16px; flex-wrap: wrap; }
+  .tela { position: relative; height: min(88vh, 900px); aspect-ratio: 9 / 16; max-width: 100%; border-radius: 18px; overflow: hidden; background: #000; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+  canvas { width: 100%; height: 100%; display: block; cursor: pointer; touch-action: manipulation; }
+  .painel { width: 340px; max-width: 100%; background: var(--painel); border: 1px solid var(--borda); border-radius: 14px; padding: 16px; }
+  h1 { font-size: 17px; margin: 0 0 4px; }
+  p { margin: 0 0 12px; color: var(--suave); }
+  .botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  button { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--borda); background: transparent; color: var(--texto); cursor: pointer; }
+  button:hover { border-color: var(--suave); }
+  button.principal { background: var(--destaque); color: var(--destaque-texto); border-color: var(--destaque); font-weight: 700; grid-column: 1 / -1; }
+  label { display: flex; gap: 8px; align-items: center; margin: 6px 0; color: var(--suave); }
+  #relatorio { margin-top: 12px; padding: 10px; border-radius: 10px; border: 1px solid var(--borda); font-size: 13px; white-space: pre-wrap; min-height: 2.5em; }
+  #relatorio.ok { border-color: var(--ok); }
+  #relatorio.erro { border-color: var(--erro); }
+  .dica { position: absolute; left: 0; right: 0; bottom: 30%; text-align: center; color: #fff; font-weight: 700; text-shadow: 0 1px 4px #000; pointer-events: none; font-size: 15px; }
+  @media (max-width: 720px) {
+    .app { padding: 16px; gap: 16px; }
+    .tela { height: auto; width: 100%; }
+    .painel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="tela">
+    <canvas id="c" width="1080" height="1920" aria-label="Preview do efeito"></canvas>
+    <div class="dica" id="dica">Toque na tela para começar</div>
+  </div>
+  <div class="painel">
+    <h1>Minha vida adulta de acordo com o filtro</h1>
+    <p>Preview do efeito em 9:16. Toque na tela (ou espaço) para iniciar, R para reiniciar.</p>
+    <div class="botoes">
+      <button class="principal" id="bIniciar">Iniciar rodada</button>
+      <button id="bReiniciar">Reiniciar</button>
+      <button id="bCamera">Ligar câmera</button>
+      <button id="bLongos">Textos mais longos</button>
+      <button id="bRapido">20 rodadas rápidas</button>
+      <button id="bVerificar" style="grid-column:1/-1">Verificar os 300 textos</button>
+    </div>
+    <label><input type="checkbox" id="cZonas"> Mostrar zonas proibidas do TikTok</label>
+    <label><input type="checkbox" id="cCaixas"> Mostrar caixas dos textos</label>
+    <div id="relatorio">—</div>
+  </div>
+</div>
+
+<script>
+/*@@ROLETA@@*/
+</script>
+<script>
+window.RESULTADOS = /*@@DADOS@@*/;
+</script>
+<script>
+(function () {
+  'use strict';
+  var L = Roleta.LAYOUT, dados = window.RESULTADOS, N = dados.categorias.length;
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  var FONTE = '"Montserrat", "Arial Black", "Inter", sans-serif';
+  var video = null, roleta = Roleta.criar(dados), velocidade = 1, rodadasRestantes = 0;
+  var mostrarZonas = false, mostrarCaixas = false, estadoFixo = null;
+
+  // Zonas que o TikTok cobre com a interface (aproximado, referencia 1080x1920).
+  var ZONAS = [
+    { x: 0, y: 0, w: 1080, h: 210, nome: 'abas' },
+    { x: 940, y: 560, w: 140, h: 900, nome: 'botões' },
+    { x: 0, y: 1460, w: 1080, h: 460, nome: 'legenda / música' }
+  ];
+
+  function fonte(px) { return '900 ' + px + 'px ' + FONTE; }
+
+  // Quebra o texto em ate linhasMax linhas, diminuindo a fonte se precisar.
+  function ajustar(texto, larguraMax, fMax, fMin, linhasMax) {
+    for (var f = fMax; f >= fMin; f -= 1) {
+      ctx.font = fonte(f);
+      var contorno = f * L.contorno;
+      var util = larguraMax - contorno;
+      var palavras = texto.split(/\s+/), linhas = [], atual = '', cabe = true;
+      for (var i = 0; i < palavras.length; i++) {
+        var teste = atual ? atual + ' ' + palavras[i] : palavras[i];
+        if (ctx.measureText(teste).width <= util) atual = teste;
+        else {
+          if (!atual) { cabe = false; break; }
+          linhas.push(atual); atual = palavras[i];
+          if (ctx.measureText(atual).width > util) { cabe = false; break; }
+        }
+      }
+      if (atual) linhas.push(atual);
+      if (cabe && linhas.length <= linhasMax) {
+        var larg = 0;
+        for (var j = 0; j < linhas.length; j++) larg = Math.max(larg, ctx.measureText(linhas[j]).width);
+        return { fonte: f, linhas: linhas, largura: larg + contorno, cabe: true };
+      }
+    }
+    ctx.font = fonte(fMin);
+    return { fonte: fMin, linhas: [texto], largura: ctx.measureText(texto).width + fMin * L.contorno, cabe: false };
+  }
+
+  // Caixa ocupada (x0,y0,x1,y1) de um bloco de texto.
+  function caixa(aj, ancora, x, yCentro, entrelinha) {
+    var lh = aj.fonte * entrelinha, h = lh * aj.linhas.length + aj.fonte * L.contorno;
+    var x0 = ancora === 'esq' ? x : ancora === 'dir' ? x - aj.largura : x - aj.largura / 2;
+    return { x0: x0, x1: x0 + aj.largura, y0: yCentro - h / 2, y1: yCentro + h / 2 };
+  }
+
+  function desenharTexto(aj, ancora, x, yCentro, entrelinha) {
+    ctx.font = fonte(aj.fonte);
+    ctx.textAlign = ancora === 'esq' ? 'left' : ancora === 'dir' ? 'right' : 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round'; ctx.miterLimit = 2;
+    ctx.lineWidth = aj.fonte * L.contorno;
+    ctx.strokeStyle = L.cores.contorno; ctx.fillStyle = L.cores.texto;
+    var lh = aj.fonte * entrelinha, n = aj.linhas.length;
+    var dx = ancora === 'esq' ? aj.fonte * L.contorno / 2 : ancora === 'dir' ? -aj.fonte * L.contorno / 2 : 0;
+    for (var i = 0; i < n; i++) {
+      var y = yCentro + (i - (n - 1) / 2) * lh;
+      ctx.strokeText(aj.linhas[i], x + dx, y);
+      ctx.fillText(aj.linhas[i], x + dx, y);
+    }
+    if (mostrarCaixas) {
+      var b = caixa(aj, ancora, x, yCentro, entrelinha);
+      ctx.save(); ctx.strokeStyle = aj.cabe ? '#00e5ff' : '#ff3030'; ctx.lineWidth = 2;
+      ctx.strokeRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); ctx.restore();
+    }
+  }
+
+  function yLinha(i) { return L.linhas.yPrimeira + i * L.linhas.espaco; }
+  function yBola(b) { return b < 0 ? L.linha.yTopo + (b + 1) * (L.linhas.yPrimeira - L.linha.yTopo) : yLinha(b); }
+
+  function titulo() { return ajustar(dados.titulo, L.titulo.larguraMax, L.titulo.fonte, L.titulo.fonteMin, L.titulo.linhasMax); }
+  function yTitulo(aj) { var t = L.titulo; return t.topo + (aj.fonte * t.entrelinha * aj.linhas.length + aj.fonte * L.contorno) / 2; }
+
+  function fundo() {
+    if (video && video.readyState >= 2) {
+      var vw = video.videoWidth, vh = video.videoHeight, s = Math.max(1080 / vw, 1920 / vh);
+      ctx.save(); ctx.translate(1080, 0); ctx.scale(-1, 1);
+      ctx.drawImage(video, (1080 - vw * s) / 2, (1920 - vh * s) / 2, vw * s, vh * s);
+      ctx.restore();
+      return;
+    }
+    var g = ctx.createLinearGradient(0, 0, 0, 1920);
+    g.addColorStop(0, '#5b6b7a'); g.addColorStop(1, '#2a2f36');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
+    // silhueta de rosto para simular a camera
+    ctx.fillStyle = '#c99a7c';
+    ctx.beginPath(); ctx.ellipse(560, 900, 300, 390, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a2a22';
+    ctx.beginPath(); ctx.ellipse(560, 620, 330, 200, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#2b2b2b';
+    ctx.beginPath(); ctx.arc(450, 860, 26, 0, 7); ctx.arc(670, 860, 26, 0, 7); ctx.fill();
+    ctx.fillStyle = '#9c4a4a'; ctx.fillRect(490, 1080, 140, 24);
+  }
+
+  function desenhar(e) {
+    fundo();
+    var tj = titulo();
+    desenharTexto(tj, 'centro', L.titulo.centroX, yTitulo(tj), L.titulo.entrelinha);
+
+    // linha vertical
+    ctx.fillStyle = L.cores.linha;
+    ctx.fillRect(L.linha.x - L.linha.espessura / 2, L.linha.yTopo, L.linha.espessura, L.linha.yBase - L.linha.yTopo);
+
+    for (var i = 0; i < N; i++) {
+      var y = yLinha(i), l = e.linhas[i];
+      ctx.beginPath(); ctx.arc(L.linha.x, y, L.circulo.raio, 0, Math.PI * 2);
+      ctx.fillStyle = l.estado === 'final' ? L.cores.bola : L.cores.circulo; ctx.fill();
+      ctx.lineWidth = L.circulo.borda; ctx.strokeStyle = L.cores.linha; ctx.stroke();
+
+      var nj = ajustar(dados.categorias[i].nome, L.nome.larguraMax, L.nome.fonte, L.nome.fonteMin, 1);
+      desenharTexto(nj, 'dir', L.nome.direita, y, 1.06);
+
+      if (l.texto) {
+        var rj = ajustar(l.texto, L.resultado.larguraMax, L.resultado.fonte, L.resultado.fonteMin, L.resultado.linhasMax);
+        desenharTexto(rj, 'esq', L.resultado.esquerda, y, L.resultado.entrelinha);
+      }
+    }
+
+    if (e.bola !== null && e.fase !== 'fim') {
+      ctx.beginPath(); ctx.arc(L.linha.x, yBola(e.bola), L.bola.raio, 0, Math.PI * 2);
+      ctx.fillStyle = L.cores.bola; ctx.fill();
+      ctx.lineWidth = 4; ctx.strokeStyle = '#000'; ctx.stroke();
+    }
+
+    if (mostrarZonas) {
+      ctx.save(); ctx.fillStyle = 'rgba(255,40,40,.28)'; ctx.strokeStyle = 'rgba(255,60,60,.9)'; ctx.lineWidth = 3;
+      ctx.font = '700 30px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ZONAS.forEach(function (z) {
+        ctx.fillRect(z.x, z.y, z.w, z.h); ctx.strokeRect(z.x, z.y, z.w, z.h);
+        ctx.fillStyle = '#fff'; ctx.fillText(z.nome, z.x + 12, z.y + 12); ctx.fillStyle = 'rgba(255,40,40,.28)';
+      });
+      ctx.restore();
+    }
+  }
+
+  // ---------- verificacao de layout ----------
+  function sobrepoe(a, b) { return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1; }
+  function foraDaTela(b) { return b.x0 < 36 || b.x1 > 1044 || b.y0 < 0 || b.y1 > 1920; }
+
+  function verificar() {
+    var problemas = [], menorFonte = 99, piores = [];
+    var tj = titulo(), bt = caixa(tj, 'centro', L.titulo.centroX, yTitulo(tj), L.titulo.entrelinha);
+    var bLinhaTopo = { x0: L.linha.x - L.bola.raio, x1: L.linha.x + L.bola.raio, y0: L.linha.yTopo - L.bola.raio, y1: L.linha.yTopo };
+    if (!tj.cabe) problemas.push('Título não cabe em 2 linhas');
+    if (bt.y1 > L.linha.yTopo - L.bola.raio - 10) problemas.push('Título encosta na linha/bolinha');
+    ZONAS.forEach(function (z) { if (sobrepoe(bt, { x0: z.x, x1: z.x + z.w, y0: z.y, y1: z.y + z.h })) problemas.push('Título invade zona: ' + z.nome); });
+    if (foraDaTela(bt)) problemas.push('Título sai da tela');
+
+    var metade = L.linhas.espaco / 2, folga = 6;
+    for (var i = 0; i < N; i++) {
+      var y = yLinha(i), cat = dados.categorias[i];
+      var faixa = { y0: y - metade + folga, y1: y + metade - folga };
+      var nj = ajustar(cat.nome, L.nome.larguraMax, L.nome.fonte, L.nome.fonteMin, 1);
+      var bn = caixa(nj, 'dir', L.nome.direita, y, 1.06);
+      if (!nj.cabe) problemas.push('Nome "' + cat.nome + '" não cabe');
+      if (bn.x1 > L.linha.x - L.circulo.raio - 8) problemas.push('Nome "' + cat.nome + '" encosta no círculo');
+      if (foraDaTela(bn)) problemas.push('Nome "' + cat.nome + '" sai da tela');
+      cat.resultados.forEach(function (txt) {
+        var rj = ajustar(txt, L.resultado.larguraMax, L.resultado.fonte, L.resultado.fonteMin, L.resultado.linhasMax);
+        var b = caixa(rj, 'esq', L.resultado.esquerda, y, L.resultado.entrelinha);
+        menorFonte = Math.min(menorFonte, rj.fonte);
+        piores.push({ txt: txt, fonte: rj.fonte, linhas: rj.linhas.length });
+        var p = [];
+        if (!rj.cabe) p.push('não cabe em 2 linhas');
+        if (b.y0 < faixa.y0 || b.y1 > faixa.y1) p.push('invade a linha vizinha');
+        if (b.x0 < L.linha.x + L.circulo.raio + 6) p.push('encosta no círculo');
+        if (foraDaTela(b)) p.push('sai da tela');
+        ZONAS.forEach(function (z) { if (sobrepoe(b, { x0: z.x, x1: z.x + z.w, y0: z.y, y1: z.y + z.h })) p.push('invade zona ' + z.nome); });
+        if (sobrepoe(b, bt)) p.push('sobrepõe o título');
+        if (p.length) problemas.push(cat.nome + ': "' + txt + '" → ' + p.join(', '));
+      });
+    }
+    piores.sort(function (a, b) { return a.fonte - b.fonte; });
+    return { ok: problemas.length === 0, problemas: problemas, menorFonte: menorFonte, fonteTitulo: tj.fonte, linhasTitulo: tj.linhas.length, piores: piores.slice(0, 6), total: piores.length };
+  }
+  window.verificar = verificar;
+
+  function mostrarRelatorio(r) {
+    var el = document.getElementById('relatorio');
+    el.className = r.ok ? 'ok' : 'erro';
+    el.textContent = (r.ok ? '✓ ' + r.total + ' resultados conferidos: nenhum sai da tela, invade zona do TikTok ou se sobrepõe.' : '✗ ' + r.problemas.length + ' problema(s):\n' + r.problemas.slice(0, 12).join('\n')) +
+      '\nTítulo: ' + r.linhasTitulo + ' linha(s), fonte ' + r.fonteTitulo + 'px. Menor fonte de resultado: ' + r.menorFonte + 'px (de 46).';
+  }
+
+  // ---------- estado fixo: textos mais longos ----------
+  function estadoLongos() {
+    return {
+      fase: 'fim', indice: N - 1, bola: null,
+      linhas: dados.categorias.map(function (c) {
+        var maior = c.resultados.slice().sort(function (a, b) {
+          var fa = ajustar(a, L.resultado.larguraMax, L.resultado.fonte, L.resultado.fonteMin, 2).fonte;
+          var fb = ajustar(b, L.resultado.larguraMax, L.resultado.fonte, L.resultado.fonteMin, 2).fonte;
+          return fa - fb || b.length - a.length;
+        })[0];
+        return { texto: maior, estado: 'final' };
+      })
+    };
+  }
+  window.mostrarLongos = function () { estadoFixo = estadoLongos(); };
+
+  // ---------- loop ----------
+  var ultimo = performance.now(), rodadasFeitas = 0;
+  function quadro(agora) {
+    var dt = Math.min(0.1, (agora - ultimo) / 1000); ultimo = agora;
+    for (var s = 0; s < velocidade; s++) roleta.atualizar(dt);
+    var e = roleta.estado();
+    if (rodadasRestantes > 0 && e.fase === 'fim') {
+      rodadasRestantes--; rodadasFeitas++;
+      document.getElementById('relatorio').textContent = 'Rodada rápida ' + rodadasFeitas + '/20: ' + e.linhas.map(function (l) { return l.texto; }).join(' · ');
+      roleta.reiniciar();
+      if (rodadasRestantes > 0) roleta.iniciar(); else velocidade = 1;
+    }
+    desenhar(estadoFixo || e);
+    document.getElementById('dica').style.display = (!estadoFixo && e.fase === 'parado') ? '' : 'none';
+    requestAnimationFrame(quadro);
+  }
+
+  function iniciar() { estadoFixo = null; if (roleta.estado().fase === 'fim') roleta.reiniciar(); roleta.iniciar(); }
+  function reiniciar() { estadoFixo = null; velocidade = 1; rodadasRestantes = 0; roleta.reiniciar(); }
+
+  cv.addEventListener('click', iniciar);
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === ' ') { ev.preventDefault(); iniciar(); }
+    if (ev.key === 'r' || ev.key === 'R') reiniciar();
+  });
+  document.getElementById('bIniciar').onclick = iniciar;
+  document.getElementById('bReiniciar').onclick = reiniciar;
+  document.getElementById('bLongos').onclick = function () { reiniciar(); estadoFixo = estadoLongos(); };
+  document.getElementById('bRapido').onclick = function () { reiniciar(); rodadasFeitas = 0; rodadasRestantes = 20; velocidade = 8; roleta.iniciar(); };
+  document.getElementById('bVerificar').onclick = function () { mostrarRelatorio(verificar()); };
+  document.getElementById('cZonas').onchange = function (ev) { mostrarZonas = ev.target.checked; };
+  document.getElementById('cCaixas').onchange = function (ev) { mostrarCaixas = ev.target.checked; };
+  document.getElementById('bCamera').onclick = function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert('Este navegador não dá acesso à câmera.'); return; }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1920 } }, audio: false })
+      .then(function (s) { video = document.createElement('video'); video.muted = true; video.playsInline = true; video.srcObject = s; video.play(); })
+      .catch(function (err) { alert('Não foi possível abrir a câmera: ' + err.message); });
+  };
+
+  var pronto = document.fonts && document.fonts.load ? document.fonts.load(fonte(46), 'Áá') : Promise.resolve();
+  pronto.catch(function () {}).then(function () {
+    window.previewPronto = true;
+    mostrarRelatorio(verificar());
+    requestAnimationFrame(quadro);
+  });
+})();
+</script>
+</body>
+</html>
