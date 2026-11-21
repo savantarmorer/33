@@ -10,6 +10,8 @@ Efeito do TikTok no estilo "barrinha que desce": uma bolinha amarela desce por
 | `dados/resultados.json` | Título, 6 categorias e 50 resultados em cada uma. **Edite aqui** para trocar textos. |
 | `src/roleta.js` | Lógica do efeito (tempos, sorteio, roleta, layout). JavaScript puro, sem dependências. Usado pelo preview e pelo script do Effect House. |
 | `preview/preview.html` | Preview que abre no navegador com duplo clique. Tem câmera frontal, zonas seguras do TikTok, teste com os textos mais longos e verificação automática dos 300 textos. |
+| `gravar/gravar.html` | Página pra usar o efeito **agora, no celular**, sem esperar o TikTok aprovar. Você grava um vídeo seu, a página coloca o efeito por cima e gera um MP4/WebM pra salvar e postar. Publicada em https://claude.ai/artifact/MkYHQGES16QRW421fte71A |
+| `src/desenho.js` | Desenho do efeito no canvas, usado pelo preview e pela página de gravação. |
 | `icone/icone-512.png`, `icone-1024.png`, `icone.svg` | Ícone: bolinha amarela na linha branca. |
 | `testes/` | Prints dos testes. |
 | `tools/` | `build-preview.js` regera o preview depois de editar o JSON; `testar-preview.js` roda os testes (Playwright). |
@@ -100,9 +102,20 @@ para publicação.
    Se o efeito for recusado por marca registrada, troque esses itens em `dados/resultados.json`.
 5. **Aprovado:** o efeito aparece no seu perfil, na aba de efeitos, e qualquer pessoa pode usar.
 
+## Usar agora no celular (sem o Effect House)
+
+1. Grave um vídeo seu com a câmera frontal, de 25 a 35 s, reagindo como se estivesse vendo o sorteio.
+   Também dá pra tocar em **Gravar agora** na própria página, que abre a câmera do celular.
+2. Abra https://claude.ai/artifact/MkYHQGES16QRW421fte71A no celular e escolha o vídeo.
+3. Toque em **Gerar vídeo**. Ele roda em tempo real, cerca de 25 s; deixe a tela aberta. Cada geração faz um sorteio novo.
+4. Toque em **Salvar vídeo** e poste no TikTok (+ → Carregar).
+
+Diferença para o efeito de verdade: aqui você não vê o sorteio enquanto grava, então a reação é "às cegas".
+Dica: use **Ver prévia** antes, ou grave reagindo de forma genérica (surpresa, risada, cara de choro).
+
 ## Editar os textos depois
 
 1. Altere `dados/resultados.json` (pode ter mais ou menos de 50 itens por categoria).
-2. Rode `node tools/build-preview.js` e abra `preview/preview.html`.
+2. Rode `node tools/build-preview.js` (regera o preview e a página de gravação) e abra `preview/preview.html`.
 3. Clique em **Verificar os 300 textos**. Se algum texto não couber, encurte esse item.
 4. Atualize o arquivo de dados no projeto do Effect House e envie a nova versão.

@@ -1,5 +1,5 @@
-// Gera preview/preview.html (arquivo unico, abre com duplo clique) a partir de
-// preview/template.html + src/roleta.js + dados/resultados.json.
+// Gera preview/preview.html e gravar/gravar.html (arquivos unicos) a partir dos
+// templates + src/roleta.js + src/desenho.js + dados/resultados.json.
 // Rode de novo depois de editar as listas:  node tools/build-preview.js
 const fs = require('fs');
 const path = require('path');
@@ -13,9 +13,15 @@ dados.categorias.forEach((c) => {
   }
 });
 
-const html = ler('preview/template.html')
-  .replace('/*@@ROLETA@@*/', () => ler('src/roleta.js'))
-  .replace('/*@@DADOS@@*/', () => JSON.stringify(dados).replace(/</g, '\\u003c'));
-fs.writeFileSync(path.join(raiz, 'preview/preview.html'), html);
-console.log('preview/preview.html gerado (' + dados.categorias.length + ' categorias, ' +
+const montar = (modelo, destino) => {
+  const html = ler(modelo)
+    .replace('/*@@ROLETA@@*/', () => ler('src/roleta.js'))
+    .replace('/*@@DESENHO@@*/', () => ler('src/desenho.js'))
+    .replace('/*@@DADOS@@*/', () => JSON.stringify(dados).replace(/</g, '\\u003c'));
+  fs.writeFileSync(path.join(raiz, destino), html);
+  console.log(destino + ' gerado');
+};
+montar('preview/template.html', 'preview/preview.html');
+montar('gravar/template.html', 'gravar/gravar.html');
+console.log('(' + dados.categorias.length + ' categorias, ' +
   dados.categorias.reduce((n, c) => n + c.resultados.length, 0) + ' resultados)');

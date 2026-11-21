@@ -1,0 +1,497 @@
+<title>Minha Vida Adulta</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap">
+<style>
+  /* Layout: estúdio de gravação de celular. Palco 9:16 em cima (ou à esquerda), passos e controles embaixo.
+     Visual escuro único (tipo app de câmera), com o amarelo da bolinha como cor de ação. */
+  :root {
+    color-scheme: dark;
+    --fundo: #0f0f12;
+    --superficie: #1a1a20;
+    --borda: #2d2d36;
+    --texto: #f4f4f6;
+    --suave: #a6a6b2;
+    --amarelo: #FFC800;
+    --amarelo-texto: #1d1600;
+    --erro: #ff6b6b;
+    --ok: #4cd68a;
+    --ui: "Montserrat", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    background: var(--fundo); color: var(--texto); font: 500 15px/1.45 var(--ui);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 16px 24px;
+  }
+  .app { max-width: 980px; margin: 0 auto; display: flex; gap: 24px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+  .palco {
+    position: relative; flex: 0 0 auto;
+    height: min(78vh, 760px); aspect-ratio: 9 / 16; max-width: 100%;
+    border-radius: 20px; overflow: hidden; background: #000;
+    box-shadow: 0 0 0 1px var(--borda), 0 18px 40px rgba(0,0,0,.5);
+  }
+  .palco canvas { width: 100%; height: 100%; display: block; }
+  .selo {
+    position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 999px;
+    background: rgba(0,0,0,.6); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  }
+  .selo.gravando { background: #e0262b; }
+  .lado { flex: 1 1 320px; min-width: 0; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { font: 900 24px/1.15 var(--ui); margin: 0; text-wrap: balance; }
+  h1 span { color: var(--amarelo); }
+  .sub { color: var(--suave); margin: 4px 0 0; }
+  .passos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: passo; }
+  .passos li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; color: var(--suave); }
+  .passos li::before {
+    counter-increment: passo; content: counter(passo);
+    width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--superficie); border: 2px solid var(--borda); color: var(--texto); font-weight: 900; font-size: 13px;
+  }
+  .passos li.atual { color: var(--texto); }
+  .passos li.atual::before { background: var(--amarelo); border-color: var(--amarelo); color: var(--amarelo-texto); }
+  .passos li.feito::before { content: "✓"; border-color: var(--ok); color: var(--ok); }
+  .bloco { background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .linha-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  button, .botao {
+    font: 700 15px/1.2 var(--ui); padding: 14px 14px; border-radius: 12px; cursor: pointer;
+    border: 1.5px solid var(--borda); background: transparent; color: var(--texto); text-align: center;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px;
+  }
+  button:hover:not(:disabled), .botao:hover { border-color: var(--suave); }
+  button:focus-visible, .botao:focus-within { outline: 3px solid var(--amarelo); outline-offset: 2px; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .principal { background: var(--amarelo); border-color: var(--amarelo); color: var(--amarelo-texto); }
+  .principal:hover:not(:disabled) { border-color: #fff; }
+  .largo { grid-column: 1 / -1; width: 100%; }
+  .botao input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .botao { position: relative; }
+  .rotulo { font-size: 13px; color: var(--suave); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+  .segmentos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .segmentos button { min-height: 42px; padding: 8px; font-size: 14px; }
+  .segmentos button[aria-pressed="true"] { background: var(--texto); color: var(--fundo); border-color: var(--texto); }
+  label.check { display: flex; gap: 10px; align-items: center; color: var(--suave); cursor: pointer; }
+  label.check input { width: 18px; height: 18px; accent-color: var(--amarelo); }
+  .info { font-size: 14px; color: var(--suave); margin: 0; }
+  .aviso { font-size: 14px; color: var(--amarelo); margin: 0; }
+  .erro { font-size: 14px; color: var(--erro); margin: 0; }
+  .barra { height: 10px; border-radius: 999px; background: var(--fundo); border: 1px solid var(--borda); overflow: hidden; }
+  .barra > div { height: 100%; width: 0; background: var(--amarelo); transition: width .2s linear; }
+  .num { font-variant-numeric: tabular-nums; }
+  video.resultado { width: 100%; max-height: 50vh; border-radius: 12px; background: #000; }
+  .escondido-video { position: absolute; width: 2px; height: 2px; opacity: .01; pointer-events: none; left: 0; top: 0; }
+  @media (max-width: 720px) {
+    .app { gap: 16px; }
+    .palco { height: auto; width: 100%; max-width: 420px; }
+    .lado { max-width: 420px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .barra > div { transition: none; } }
+</style>
+
+<div class="app">
+  <div class="palco">
+    <canvas id="tela" width="720" height="1280" aria-label="Vídeo com o efeito"></canvas>
+    <div class="selo" id="selo">Demonstração</div>
+  </div>
+
+  <div class="lado">
+    <div>
+      <h1>Minha vida adulta <span>de acordo com o filtro</span></h1>
+      <p class="sub">Grave um vídeo seu, coloque o efeito da barrinha e salve pronto pra postar no TikTok.</p>
+    </div>
+
+    <ol class="passos" id="passos">
+      <li id="p1" class="atual">Grave um vídeo com a câmera frontal, olhando pra tela e reagindo, de 25 a 35 segundos.</li>
+      <li id="p2">Gere o vídeo com o efeito. Cada vez que gerar, o sorteio é novo.</li>
+      <li id="p3">Salve e poste no TikTok.</li>
+    </ol>
+
+    <section class="bloco" id="blocoEscolher">
+      <div class="linha-botoes">
+        <label class="botao principal">
+          <input type="file" id="arqCamera" accept="video/*" capture="user">
+          Gravar agora
+        </label>
+        <label class="botao">
+          <input type="file" id="arqGaleria" accept="video/*">
+          Escolher da galeria
+        </label>
+      </div>
+      <p class="info" id="infoVideo">Nenhum vídeo escolhido. O efeito ao lado é só uma demonstração.</p>
+    </section>
+
+    <section class="bloco" id="blocoAjustes" hidden>
+      <div class="rotulo">A bolinha começa a descer em</div>
+      <div class="segmentos" id="segInicio">
+        <button type="button" data-s="0.5" aria-pressed="false">0,5 s</button>
+        <button type="button" data-s="1" aria-pressed="true">1 s</button>
+        <button type="button" data-s="2" aria-pressed="false">2 s</button>
+        <button type="button" data-s="3" aria-pressed="false">3 s</button>
+      </div>
+      <label class="check"><input type="checkbox" id="chkEspelhar"> Espelhar o vídeo</label>
+      <div class="linha-botoes">
+        <button type="button" id="bPrevia">Ver prévia</button>
+        <button type="button" id="bGerar" class="principal">Gerar vídeo</button>
+      </div>
+      <p class="aviso" id="avisoDuracao" hidden></p>
+    </section>
+
+    <section class="bloco" id="blocoGerando" hidden>
+      <div class="rotulo">Gerando o vídeo</div>
+      <div class="barra" aria-hidden="true"><div id="barra"></div></div>
+      <p class="info num" id="infoProgresso">0 s</p>
+      <p class="info">Deixe esta tela aberta até terminar. O vídeo roda em tempo real.</p>
+      <button type="button" id="bCancelar">Cancelar</button>
+    </section>
+
+    <section class="bloco" id="blocoPronto" hidden>
+      <div class="rotulo">Seu vídeo está pronto</div>
+      <video class="resultado" id="resultado" controls playsinline></video>
+      <button type="button" id="bSalvar" class="principal largo">Salvar vídeo</button>
+      <p class="info" id="infoSalvar"></p>
+      <button type="button" id="bDeNovo" class="largo">Gerar de novo (novo sorteio)</button>
+    </section>
+
+    <p class="erro" id="erro" hidden></p>
+  </div>
+</div>
+
+<video id="fonte" class="escondido-video" playsinline preload="auto"></video>
+
+<script>
+/*@@ROLETA@@*/
+</script>
+<script>
+/*@@DESENHO@@*/
+</script>
+<script>
+window.RESULTADOS = /*@@DADOS@@*/;
+</script>
+<script>
+(function () {
+  'use strict';
+  var dados = window.RESULTADOS;
+  var W = 720, H = 1280, ESC = W / 1080;
+  var MAX_SEG = 60;               // vídeo final de no máximo 60 s
+  var SEGURA_FIM = 1.5;           // segundos extras com o resultado parado se o vídeo acabar antes
+  var DURACAO = Roleta.duracaoTotal(dados.categorias.length);
+
+  var tela = document.getElementById('tela'), ctx = tela.getContext('2d');
+  var D = Desenho.criar(ctx, dados);
+  var fonte = document.getElementById('fonte');
+  var $ = function (id) { return document.getElementById(id); };
+
+  var modo = 'demo';             // demo | pronto | previa | gerando | feito
+  var roleta = Roleta.criar(dados);
+  var inicio = 1, espelhar = false, temVideo = false, urlFonte = null, urlResultado = null, blobResultado = null, extResultado = 'mp4';
+  var iniciou = false, ultimoT = 0, fimEm = null, terminouEm = null, gravador = null, pedacos = [], cancelado = false;
+  var audio = null, travaTela = null;
+
+  // ---------- desenho ----------
+  function fundoDemo(agora) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#4b5866'); g.addColorStop(1, '#1d2127');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    var dx = Math.sin(agora / 1400) * 10;
+    ctx.save(); ctx.translate(W / 2 + dx, H * 0.48);
+    ctx.fillStyle = '#c99a7c'; ctx.beginPath(); ctx.ellipse(0, 0, 200, 260, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a2a22'; ctx.beginPath(); ctx.ellipse(0, -180, 220, 130, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#262626'; ctx.beginPath(); ctx.arc(-70, -30, 17, 0, 7); ctx.arc(70, -30, 17, 0, 7); ctx.fill();
+    ctx.fillStyle = '#9c4a4a'; ctx.fillRect(-45, 110, 90, 16);
+    ctx.restore();
+  }
+
+  function fundoVideo() {
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    if (fonte.readyState < 2 || !fonte.videoWidth) return;
+    var vw = fonte.videoWidth, vh = fonte.videoHeight, s = Math.max(W / vw, H / vh);
+    ctx.save();
+    if (espelhar) { ctx.translate(W, 0); ctx.scale(-1, 1); }
+    ctx.drawImage(fonte, (W - vw * s) / 2, (H - vh * s) / 2, vw * s, vh * s);
+    ctx.restore();
+  }
+
+  function desenhar(agora) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (temVideo) fundoVideo(); else fundoDemo(agora);
+    ctx.setTransform(ESC, 0, 0, ESC, 0, 0);
+    D.sobreposicao(roleta.estado());
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  // ---------- relógio ----------
+  // A roleta anda junto com o tempo do vídeo; se o vídeo acabar antes, o último quadro fica parado.
+  function tempoAtual(agora) {
+    if (fimEm !== null) return fimEm + (agora - terminouEm) / 1000;
+    return fonte.currentTime;
+  }
+
+  var ultimoQuadro = performance.now(), fimDemo = null;
+  function quadro(agora) {
+    var dt = Math.min(0.1, (agora - ultimoQuadro) / 1000); ultimoQuadro = agora;
+
+    if (modo === 'demo') {
+      var e = roleta.estado();
+      if (e.fase === 'parado') roleta.iniciar();
+      else if (e.fase === 'fim') {
+        if (fimDemo === null) fimDemo = agora;
+        if (agora - fimDemo > 2500) { roleta.reiniciar(); fimDemo = null; }
+      }
+      roleta.atualizar(dt);
+    } else if (modo === 'previa' || modo === 'gerando') {
+      var t = tempoAtual(agora);
+      if (!iniciou && t >= inicio) { roleta.iniciar(); iniciou = true; ultimoT = inicio; }
+      if (iniciou) { roleta.atualizar(t - ultimoT); ultimoT = t; }
+      var fase = roleta.estado().fase;
+      var limite = Math.min(MAX_SEG, Math.max(isFinite(fonte.duration) ? fonte.duration : 0, inicio + DURACAO + SEGURA_FIM));
+      if (modo === 'gerando') {
+        $('barra').style.width = Math.min(100, t / limite * 100) + '%';
+        $('infoProgresso').textContent = fmt(Math.min(t, limite)) + ' de ' + fmt(limite);
+      }
+      // Para quando a roleta terminou E o vídeo acabou (ou já segurou o resultado), ou no limite de 60 s.
+      if (t >= MAX_SEG || (fase === 'fim' && t >= limite - 0.01)) terminar();
+    }
+    desenhar(agora);
+    requestAnimationFrame(quadro);
+  }
+
+  function fmt(s) { return s.toFixed(0) + ' s'; }
+
+  // ---------- vídeo de entrada ----------
+  function escolherArquivo(ev) {
+    var arq = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!arq) return;
+    esconderErro();
+    pararTudo();
+    if (urlFonte) URL.revokeObjectURL(urlFonte);
+    urlFonte = URL.createObjectURL(arq);
+    temVideo = false;
+    fonte.src = urlFonte;
+    fonte.load();
+    $('infoVideo').textContent = 'Carregando o vídeo…';
+  }
+
+  fonte.addEventListener('loadedmetadata', function () {
+    var d = fonte.duration;
+    $('infoVideo').textContent = 'Vídeo carregado: ' + (isFinite(d) ? d.toFixed(1).replace('.', ',') + ' s' : 'duração desconhecida') + '. Troque quando quiser.';
+    try { fonte.currentTime = 0.05; } catch (e) {}
+  });
+  fonte.addEventListener('loadeddata', function () {
+    temVideo = true;
+    entrarModo('pronto');
+    avisoDuracao();
+  });
+  fonte.addEventListener('error', function () {
+    if (!fonte.getAttribute('src')) return;
+    mostrarErro('Não consegui abrir esse vídeo. Tente outro arquivo (MP4 ou MOV gravado pelo celular).');
+    $('infoVideo').textContent = 'Nenhum vídeo carregado.';
+  });
+  fonte.addEventListener('ended', function () {
+    if (modo === 'previa' || modo === 'gerando') { fimEm = fonte.duration || fonte.currentTime; terminouEm = performance.now(); }
+  });
+
+  function avisoDuracao() {
+    var precisa = inicio + DURACAO + 1, d = fonte.duration, el = $('avisoDuracao');
+    if (isFinite(d) && d < precisa) {
+      el.hidden = false;
+      el.textContent = 'O vídeo tem ' + d.toFixed(0) + ' s e a roleta leva ' + precisa.toFixed(0) + ' s. Dá pra gerar: o último quadro fica parado até o fim. Mas um vídeo de 25 s ou mais fica melhor.';
+    } else if (isFinite(d) && d > MAX_SEG) {
+      el.hidden = false;
+      el.textContent = 'O vídeo tem ' + d.toFixed(0) + ' s. O vídeo gerado vai até ' + MAX_SEG + ' s.';
+    } else el.hidden = true;
+  }
+
+  // ---------- áudio (para o vídeo final ter som) ----------
+  function prepararAudio() {
+    if (audio) { if (audio.ctx.state === 'suspended') audio.ctx.resume(); return audio; }
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      var c = new AC();
+      var src = c.createMediaElementSource(fonte);
+      var dest = c.createMediaStreamDestination();
+      src.connect(dest); src.connect(c.destination);
+      audio = { ctx: c, dest: dest };
+    } catch (e) { audio = { ctx: null, dest: null }; }
+    return audio;
+  }
+
+  // ---------- prévia e geração ----------
+  function reiniciarRodada() {
+    roleta.reiniciar(); iniciou = false; ultimoT = 0; fimEm = null; terminouEm = null;
+  }
+
+  function tocarDoInicio() {
+    return new Promise(function (ok) {
+      var pronto = function () { fonte.removeEventListener('seeked', pronto); ok(); };
+      fonte.addEventListener('seeked', pronto);
+      try { fonte.currentTime = 0; } catch (e) { pronto(); }
+      setTimeout(pronto, 1500);
+    }).then(function () { return fonte.play(); });
+  }
+
+  function previa() {
+    if (!temVideo) return;
+    esconderErro();
+    if (modo === 'previa') { pararTudo(); entrarModo('pronto'); return; }
+    prepararAudio();
+    reiniciarRodada();
+    entrarModo('previa');
+    tocarDoInicio().catch(function () { mostrarErro('Toque em "Ver prévia" de novo para tocar o vídeo.'); entrarModo('pronto'); });
+  }
+
+  function tipoDeVideo() {
+    var op = [['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'mp4'], ['video/mp4;codecs=avc1,mp4a', 'mp4'], ['video/mp4', 'mp4'],
+      ['video/webm;codecs=vp9,opus', 'webm'], ['video/webm;codecs=vp8,opus', 'webm'], ['video/webm', 'webm']];
+    for (var i = 0; i < op.length; i++) if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(op[i][0])) return op[i];
+    return ['', 'webm'];
+  }
+
+  function gerar() {
+    if (!temVideo) return;
+    esconderErro();
+    if (!window.MediaRecorder || !tela.captureStream) {
+      mostrarErro('Este navegador não consegue gerar vídeo. Abra a página no Chrome (Android) ou no Safari (iPhone) atualizados.');
+      return;
+    }
+    pararTudo();
+    var a = prepararAudio();
+    var stream = tela.captureStream(30);
+    if (a.dest) a.dest.stream.getAudioTracks().forEach(function (t) { stream.addTrack(t); });
+    var tipo = tipoDeVideo();
+    extResultado = tipo[1];
+    try {
+      gravador = new MediaRecorder(stream, tipo[0] ? { mimeType: tipo[0], videoBitsPerSecond: 8000000 } : { videoBitsPerSecond: 8000000 });
+    } catch (e) {
+      try { gravador = new MediaRecorder(stream); } catch (e2) { mostrarErro('Não foi possível começar a gravação: ' + e2.message); return; }
+    }
+    pedacos = []; cancelado = false;
+    gravador.ondataavailable = function (ev) { if (ev.data && ev.data.size) pedacos.push(ev.data); };
+    gravador.onstop = function () {
+      stream.getVideoTracks().forEach(function (t) { t.stop(); });
+      if (cancelado) return;
+      blobResultado = new Blob(pedacos, { type: gravador.mimeType || ('video/' + extResultado) });
+      window.__ultimoVideo = blobResultado;
+      if (/mp4/.test(blobResultado.type)) extResultado = 'mp4';
+      if (urlResultado) URL.revokeObjectURL(urlResultado);
+      urlResultado = URL.createObjectURL(blobResultado);
+      $('resultado').src = urlResultado;
+      $('infoSalvar').textContent = 'Arquivo ' + extResultado.toUpperCase() + ' de ' + (blobResultado.size / 1048576).toFixed(1).replace('.', ',') + ' MB.';
+      entrarModo('feito');
+    };
+    reiniciarRodada();
+    entrarModo('gerando');
+    pedirTravaTela();
+    tocarDoInicio().then(function () {
+      if (modo === 'gerando' && gravador.state === 'inactive') gravador.start(500);
+    }).catch(function () {
+      mostrarErro('O vídeo não começou a tocar. Toque em "Gerar vídeo" de novo.');
+      cancelado = true; pararTudo(); entrarModo('pronto');
+    });
+  }
+
+  function terminar() {
+    if (modo === 'previa') { fonte.pause(); entrarModo('pronto'); return; }
+    if (modo === 'gerando') {
+      modo = 'finalizando';
+      fonte.pause();
+      if (gravador && gravador.state !== 'inactive') gravador.stop();
+      soltarTravaTela();
+    }
+  }
+
+  function pararTudo() {
+    try { fonte.pause(); } catch (e) {}
+    if (gravador && gravador.state !== 'inactive') { cancelado = true; gravador.stop(); }
+    soltarTravaTela();
+  }
+
+  function cancelar() { pararTudo(); reiniciarRodada(); entrarModo('pronto'); }
+
+  // ---------- salvar ----------
+  var downloads = null;
+  if (window.claude && window.claude.use) {
+    window.claude.use('downloads').then(function (d) { downloads = d; atualizarSalvar(); }).catch(function () {});
+  }
+  function atualizarSalvar() {
+    if (modo !== 'feito') return;
+    if (!downloads) {
+      $('bSalvar').disabled = true;
+      $('infoSalvar').textContent = 'Salvar não está disponível nesta visualização. Abra esta página pelo link no app do Claude ou no navegador do celular.';
+    } else $('bSalvar').disabled = false;
+  }
+  function salvar() {
+    if (!downloads || !blobResultado) return;
+    $('bSalvar').disabled = true;
+    downloads.save({ filename: 'minha-vida-adulta.' + extResultado, data: blobResultado }).then(function () {
+      $('infoSalvar').textContent = 'Vídeo salvo. Agora é só postar no TikTok: + → Carregar → escolha o vídeo.';
+      marcar(3, 'feito');
+    }).catch(function (err) {
+      var c = err && err.code;
+      if (c === 'declined') $('infoSalvar').textContent = 'Você cancelou. Toque em "Salvar vídeo" quando quiser.';
+      else if (c === 'rate_limited') $('infoSalvar').textContent = 'Já tem um pedido de salvar aberto. Espere um pouco e tente de novo.';
+      else if (c === 'too_large') $('infoSalvar').textContent = 'O vídeo ficou grande demais para salvar aqui. Use um vídeo mais curto (até 30 s).';
+      else $('infoSalvar').textContent = 'Não foi possível salvar nesta visualização (' + (c || 'erro') + ').';
+    }).then(function () { $('bSalvar').disabled = !downloads; });
+  }
+
+  // ---------- trava de tela ----------
+  function pedirTravaTela() {
+    if (navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen').then(function (t) { travaTela = t; }).catch(function () {});
+  }
+  function soltarTravaTela() { if (travaTela) { travaTela.release().catch(function () {}); travaTela = null; } }
+
+  // ---------- interface ----------
+  function marcar(n, cls) {
+    for (var i = 1; i <= 3; i++) {
+      var li = $('p' + i);
+      li.className = i < n ? 'feito' : i === n ? cls : '';
+    }
+  }
+
+  function entrarModo(m) {
+    modo = m;
+    var selo = $('selo');
+    selo.className = 'selo' + (m === 'gerando' ? ' gravando' : '');
+    selo.textContent = { demo: 'Demonstração', pronto: 'Seu vídeo', previa: 'Prévia', gerando: '● Gerando', feito: 'Pronto' }[m] || '';
+    $('blocoEscolher').hidden = m === 'gerando';
+    $('blocoAjustes').hidden = !(m === 'pronto' || m === 'previa');
+    $('blocoGerando').hidden = m !== 'gerando';
+    $('blocoPronto').hidden = m !== 'feito';
+    $('bPrevia').textContent = m === 'previa' ? 'Parar prévia' : 'Ver prévia';
+    $('bGerar').disabled = m === 'previa';
+    if (m === 'demo') marcar(1, 'atual');
+    if (m === 'pronto' || m === 'previa' || m === 'gerando') marcar(2, 'atual');
+    if (m === 'feito') { marcar(3, 'atual'); atualizarSalvar(); }
+    if (m === 'pronto') { reiniciarRodada(); try { if (fonte.paused && fonte.currentTime > 0.2) fonte.currentTime = 0.05; } catch (e) {} }
+  }
+
+  function mostrarErro(msg) { var el = $('erro'); el.textContent = msg; el.hidden = false; }
+  function esconderErro() { $('erro').hidden = true; }
+
+  $('arqCamera').addEventListener('change', escolherArquivo);
+  $('arqGaleria').addEventListener('change', escolherArquivo);
+  $('bPrevia').addEventListener('click', previa);
+  $('bGerar').addEventListener('click', gerar);
+  $('bCancelar').addEventListener('click', cancelar);
+  $('bSalvar').addEventListener('click', salvar);
+  $('bDeNovo').addEventListener('click', function () { entrarModo('pronto'); gerar(); });
+  $('chkEspelhar').addEventListener('change', function (ev) { espelhar = ev.target.checked; });
+  Array.prototype.forEach.call($('segInicio').querySelectorAll('button'), function (b) {
+    b.addEventListener('click', function () {
+      inicio = parseFloat(b.getAttribute('data-s'));
+      Array.prototype.forEach.call($('segInicio').querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      avisoDuracao();
+    });
+  });
+
+  var carregou = document.fonts && document.fonts.load ? document.fonts.load(D.fonte(46), 'Áá') : Promise.resolve();
+  var comecar = function () { if (window.__iniciado) return; window.__iniciado = true; entrarModo('demo'); requestAnimationFrame(quadro); };
+  carregou.then(comecar, comecar);
+  setTimeout(comecar, 2500);
+})();
+</script>
